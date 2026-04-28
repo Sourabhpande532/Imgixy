@@ -1,3 +1,3 @@
 ## KavioPix
 
-The project involves building an API-based image management system similar to Google Photos with authentication through Google Auth. Users can create albums, share them with others via email, and upload images with various metadata. The project will allow adding tags, comments, favorites, and person names to the images.
+KaviosPix is a full-stack image management system where users can securely upload, organize, and share images. We implemented Google OAuth for authentication and used JWT for secure API access. Images are stored using Cloudinary, and metadata like tags, favorites, and comments are managed in MongoDB. The system also supports album sharing via email with controlled permissions.
