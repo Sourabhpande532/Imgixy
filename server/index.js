@@ -13,6 +13,8 @@ connectDB();
 
 import "./config/passport.js";
 import authRoutes from "./routes/authRoutes.js";
+import albumRoutes from "./routes/albumRoutes.js";
+import imageRoutes from "./routes/imageRoutes.js";
 
 const app = express();
 app.use(express.json());
@@ -20,6 +22,8 @@ app.use(cors());
 app.use(passport.initialize());
 
 app.use("/auth", authRoutes);
+app.use("/albums", albumRoutes);
+app.use("/images", imageRoutes);
 
 app.get("/", (req, res) => {
   res.send("Welcome to expressjs");

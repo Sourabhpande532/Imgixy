@@ -19,7 +19,5 @@ app.get(
     res.json({ token });
   },
 );
-app.get("/g",(req,res)=>{
-    res.send('Hellow  auth')
-})
+
 export default app;

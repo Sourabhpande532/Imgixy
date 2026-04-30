@@ -1,4 +1,4 @@
-import Album from "../models/Album";
+import Album from "../models/Album.js";
 
 export const createAlbum = async (req, res) => {
   const album = await Album.create({
@@ -6,4 +6,42 @@ export const createAlbum = async (req, res) => {
     ownerId: req.user.id,
   });
   res.json(album);
+};
+
+export const getAlbums = async (req, res) => {
+  const albums = await Album.find({
+    $or: [{ ownerId: req.user.id }, { sharedWith: req.user.email }],
+  });
+  res.json(albums);
+};
+
+export const updateAlbum = async (req, res) => {
+  const album = await Album.findById(req.params.id);
+
+  if (album.ownerId.toString() !== req.user.id)
+    return res.status(403).json({ msg: "Not allowed" });
+
+  album.description = req.body.description;
+  await album.save();
+
+  res.json(album);
+};
+
+export const shareAlbum = async (req, res) => {
+  const album = await Album.findById(req.params.id);
+
+  album.sharedWith.push(...req.body.emails);
+  await album.save();
+
+  res.json(album);
+};
+
+export const deleteAlbum = async (req, res) => {
+  const album = await Album.findById(req.params.id);
+
+  if (album.ownerId.toString() !== req.user.id)
+    return res.status(403).json({ msg: "Not allowed" });
+
+  await album.deleteOne();
+  res.json({ msg: "Deleted" });
 };
