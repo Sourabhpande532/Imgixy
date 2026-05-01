@@ -1,17 +1,21 @@
-// import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import type { AlbumType } from "../pages/Dashboard";
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function AlbumCard({ album }: { album: string }) {
-//   const navigate = useNavigate();
+interface AlbumCartProps {
+  album: AlbumType;
+}
+
+function AlbumCard({ album }: AlbumCartProps) {
+  const navigate = useNavigate();
 
   return (
     <div className='col-md-3'>
       <div
         className='card p-3'
-        // onClick={() => navigate(`/album/${album._id}`)}
+        onClick={() => navigate(`/album/${album._id}`)}
         style={{ cursor: "pointer" }}>
-        <h5>{album}</h5>
-        {/* <p>{album.description}</p> */}
+        <h5>{album.name}</h5>
+        <p>{album.description}</p>
       </div>
     </div>
   );
