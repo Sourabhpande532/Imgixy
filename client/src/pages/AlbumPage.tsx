@@ -2,50 +2,79 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import API from "../services/api";
-import ImageCard from "../components/ImageCard";
+import Navbar from "../components/Navbar";
+import CommentModal from "../components/CommentModal";
+import type { Image } from "../types";
 import UploadModal from "../components/UploadModal";
 
-export interface ImageType {
-  _id: string;
-  url: string;
-  isFavorite: boolean;
-  tags?: string[];
-}
-
-function AlbumPage() {
-  const { id } = useParams<{ id: string }>();
-  const [images, setImages] = useState<ImageType[]>([]);
+const AlbumPage = () => {
+  const { id } = useParams();
+  const [images, setImages] = useState<Image[]>([]);
+  const [selected, setSelected] = useState<string>("");
 
   const fetchImages = async () => {
-    if (!id) return;
-    const res = await API.get<ImageType[]>(`/images/${id}`);
+    const res = await API.get(`/images/${id}`);
     setImages(res.data);
   };
 
   useEffect(() => {
     fetchImages();
-  }, [id]);
+  }, []);
+
+  const toggleFav = async (img: Image) => {
+    await API.put(`/images/${img._id}/favorite`, {
+      isFavorite: !img.isFavorite,
+    });
+    fetchImages();
+  };
 
   return (
-    <div className='container mt-4'>
-      <h3>Images</h3>
+    <>
+      <Navbar />
 
-      <button
-        className='btn btn-primary mb-3'
-        data-bs-toggle='modal'
-        data-bs-target='#uploadModal'>
-        Upload Image
-      </button>
+      <div className="container mt-4">
+        <button
+          className="btn btn-primary"
+          data-bs-toggle="modal"
+          data-bs-target="#uploadModal"
+        >
+          Upload
+        </button>
 
-      <UploadModal albumId={id} refresh={fetchImages} />
+        <UploadModal albumId={id!} refresh={fetchImages} />
+        <CommentModal imageId={selected} refresh={fetchImages} />
 
-      <div className='row'>
-        {images.map((img) => (
-          <ImageCard key={img._id} img={img} refresh={fetchImages} />
-        ))}
+        <div className="row mt-3">
+          {images.map((img) => (
+            <div className="col-md-3" key={img._id}>
+              <div className="card p-2">
+                <img src={img.url} className="img-fluid" />
+
+                <p><b>Tags:</b> {img.tags.join(", ")}</p>
+                <p><b>Person:</b> {img.person}</p>
+
+                <button
+                  className="btn btn-warning"
+                  onClick={() => toggleFav(img)}
+                >
+                  {img.isFavorite ? "Unstar" : "Star"}
+                </button>
+
+                <button
+                  className="btn btn-info mt-2"
+                  data-bs-toggle="modal"
+                  data-bs-target="#commentModal"
+                  onClick={() => setSelected(img._id)}
+                >
+                  Comment
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
+    </>
   );
-}
+};
 
 export default AlbumPage;

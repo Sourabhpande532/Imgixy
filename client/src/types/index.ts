@@ -1,9 +1,11 @@
-export interface Album {
+export interface AlbumType {
     _id: string;
     name: string;
     description: string;
     ownerId: string;
-    sharedWith: string[]
+    sharedWith: string[];
+    createdAt: string;
+    updatedAt: string;
 }
 export interface Image {
     _id: string;
