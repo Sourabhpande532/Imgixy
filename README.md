@@ -7,10 +7,25 @@ KaviosPix is a full-stack image management system where users can securely uploa
 ## Technology
 
 - React Js
+- TypeScript
 - Node Js
 - Express JS
 - Mongo DB
 - Cloudinary
 - Authentication
+- RESTful APIs
+
+
+---
+
+## Demo Link
+
+[Live Demo](https://placecode.co/)
+
+---
+
+## Contact 
+
+For bugs or feature requests, please reach out to [sourabhpande43@gmail.com](mailto:sourabhpande43@gmail.com)
 
 ---

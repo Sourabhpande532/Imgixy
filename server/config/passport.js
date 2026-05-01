@@ -13,6 +13,7 @@ passport.use(
     },
     async (_, __, profile, done) => {
       console.log(profile);
+      // Google sends user info to backend then backend create jwt 
       const email = profile.emails[0].value;
       let user = await User.findOne({ email });
       if (!user) user = await User.create({ email });
@@ -21,3 +22,14 @@ passport.use(
   ),
 );
 
+
+/* NOTE:
+In traditional authentication, we use a POST request to send credentials. However, in Google OAuth, authentication is handled by Google, and the backend receives user information via a callback. Therefore, we initiate the flow with a GET request and generate a JWT after 
+successful authentication 
+
+GET → starts OAuth flow
+Google → handles login
+Backend → creates JWT
+Redirect → sends token
+
+*/
