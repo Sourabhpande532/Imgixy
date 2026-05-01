@@ -9,20 +9,21 @@ function Login() {
     // Read token
     const token = new URLSearchParams(window.location.search).get("token");
     if (token) {
+      console.log("Token Received:", token);
       localStorage.setItem("kavioToken", token);
       setToken(token);
       navigate("/dashboard");
     }
   }, []);
 
-  const handleLogin = () => {
-    window.open("http://localhost:5001/auth/google", "_self");
-  };
-
   return (
     <div className='container text-center mt-5'>
       <h2>KaviosPix</h2>
-      <button className='btn btn-danger' onClick={handleLogin}>
+      <button
+        className='btn btn-danger'
+        onClick={() =>
+          window.open("http://localhost:5001/auth/google", "_self")
+        }>
         Login with Google
       </button>
     </div>

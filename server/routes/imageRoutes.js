@@ -11,7 +11,7 @@ import { upload } from "../middleware/upload.js";
 import { protect } from "../middleware/auth.js";
 const router = express.Router();
 
-router.post("/:albumsId", protect, upload.single("file"), uploadImage);
+router.post("/:albumId", protect, upload.single("file"), uploadImage);
 router.get("/:albumId", protect, getImages);
 router.get("/:albumId/favorites", protect, getFavorites);
 

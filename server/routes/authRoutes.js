@@ -23,14 +23,6 @@ app.get(
   },
 );
 
-app.get("/test-token", (req, res) => {
-  const token = jwt.sign(
-    { id: "69f43b2b9df83150cbb2c5d5", email: "sp647600@email.com" },
-    process.env.JWT_SECRET,
-  );
-  res.json({ token });
-});
-
 export default app;
 
 /*UNDERSTANDING:

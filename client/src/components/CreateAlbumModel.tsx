@@ -1,6 +1,6 @@
 import { useState } from "react";
 import API from "../services/api";
-
+import { Modal } from "bootstrap";
 interface Props {
   refresh: () => void;
 }
@@ -20,6 +20,10 @@ const CreateAlbumModal: React.FC<Props> = ({ refresh }) => {
     setName("");
     setDescription("");
     refresh();
+
+    const modalEl = document.getElementById("createModal");
+    const modal = Modal.getInstance(modalEl!);
+    modal?.hide();
   };
 
   return (
