@@ -1,8 +1,8 @@
-import type { ImageType } from "../pages/AlbumPage";
 import API from "../services/api";
+import type { Image } from "../types";
 
 interface ImageCardProps {
-  img: ImageType;
+  img: Image;
   refresh: () => Promise<void> | void;
 }
 

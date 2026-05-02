@@ -18,8 +18,7 @@ app.get(
       { id: req.user._id, email: req.user.email },
       process.env.JWT_SECRET,
     );
-
-    res.redirect(`http://localhost:5173/?token=${token}`);
+    res.redirect(`${process.env.FRONTEND_URL}/?token=${token}`);
   },
 );
 

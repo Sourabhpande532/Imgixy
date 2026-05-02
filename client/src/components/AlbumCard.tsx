@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import type { AlbumType } from "../pages/Dashboard";
+import type { AlbumType } from "../types";
+
 
 interface AlbumCartProps {
   album: AlbumType;
