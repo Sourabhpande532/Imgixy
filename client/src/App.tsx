@@ -4,6 +4,8 @@ import Dashboard from "./pages/Dashboard";
 import AlbumPage from "./pages/AlbumPage";
 import { setToken } from "./services/api";
 import { useEffect } from "react";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function App() {
   useEffect(() => {
@@ -14,6 +16,7 @@ function App() {
   }, []);
   return (
     <BrowserRouter>
+      <ToastContainer />
       <Routes>
         <Route path='/' element={<Login />} />
         <Route path='/dashboard' element={<Dashboard />} />
