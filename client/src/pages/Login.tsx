@@ -22,7 +22,7 @@ function Login() {
       <button
         className='btn btn-danger'
         onClick={() =>
-          window.open("http://localhost:5001/auth/google", "_self")
+          window.open("https://imgixy.vercel.app/auth/google", "_self")
         }>
         Login with Google
       </button>
