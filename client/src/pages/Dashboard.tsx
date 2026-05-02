@@ -5,6 +5,7 @@ import Navbar from "../components/Navbar";
 import CreateAlbumModal from "../components/CreateAlbumModel";
 import ShareModal from "../components/ShareModal";
 import type { AlbumType } from "../types";
+import { toast } from "react-toastify";
 
 const Dashboard = () => {
   const [albums, setAlbums] = useState<AlbumType[]>([]);
@@ -35,6 +36,7 @@ const Dashboard = () => {
   const deleteAlbum = async (id: string) => {
     await API.delete(`/albums/${id}`);
     fetchAlbums();
+    toast.success('Deleted successfully!')
   };
 
   return (

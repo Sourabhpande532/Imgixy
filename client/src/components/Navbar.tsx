@@ -8,13 +8,15 @@ const Navbar = () => {
   };
   return (
     <nav className='navbar navbar-dark bg-dark px-3'>
-      <Link to='/dashboard' className='navbar-brand'>
-        KaviosPix
-      </Link>
+      <div className="container">
+        <Link to='/dashboard' className='navbar-brand'>
+          KaviosPix
+        </Link>
 
-      <button className='btn btn-danger' onClick={logout}>
-        Logout
-      </button>
+        <button className='btn btn-danger' onClick={logout}>
+          Logout
+        </button>
+      </div>
     </nav>
   );
 };
