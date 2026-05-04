@@ -38,27 +38,47 @@ const CreateAlbumModal: React.FC<Props> = ({ refresh }) => {
 
   return (
     <div className="modal fade" id="createModal" tabIndex={-1}>
-      <div className="modal-dialog">
-        <div className="modal-content p-3">
-          <h5>Create Album</h5>
+      <div className="modal-dialog modal-dialog-centered">
+        <div className="modal-content">
+          <div className="modal-header">
+            <h5 className="modal-title">
+              <i className="fas fa-folder-plus me-2" style={{ color: "var(--accent)" }} />
+              Create New Album
+            </h5>
+            <button type="button" className="btn-close" data-bs-dismiss="modal" />
+          </div>
 
-          <input
-            className="form-control"
-            placeholder="Album name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
+          <div className="modal-body d-flex flex-column gap-3">
+            <div>
+              <label className="kx-label">Album Name *</label>
+              <input
+                id="album-name-input"
+                className="kx-input"
+                placeholder="e.g. Summer Vacation 2024"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+            </div>
 
-          <input
-            className="form-control mt-2"
-            placeholder="Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
+            <div>
+              <label className="kx-label">Description</label>
+              <input
+                id="album-desc-input"
+                className="kx-input"
+                placeholder="Optional — what's this album about?"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
+            </div>
+          </div>
 
-          <button className="btn btn-success mt-3" onClick={handleCreate}>
-            Create
-          </button>
+          <div className="modal-footer gap-2">
+            <button className="kx-btn-cancel" data-bs-dismiss="modal">Cancel</button>
+            <button id="create-album-submit" className="kx-btn-success" onClick={handleCreate}>
+              <i className="fas fa-check me-1" />
+              Create Album
+            </button>
+          </div>
         </div>
       </div>
     </div>
