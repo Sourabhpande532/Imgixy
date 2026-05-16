@@ -5,6 +5,7 @@ import CreateAlbumModal from "../components/CreateAlbumModel";
 import ShareModal from "../components/ShareModal";
 import type { AlbumType } from "../types";
 import { toast } from "react-toastify";
+import Planner from "./Planner";
 
 const Dashboard = () => {
   const [albums, setAlbums] = useState<AlbumType[]>([]);
@@ -58,7 +59,7 @@ const Dashboard = () => {
   return (
     <>
       <Navbar />
-
+       <Planner/>
       <div className='kx-page'>
         <div className='container'>
           {/* Header */}

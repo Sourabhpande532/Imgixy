@@ -4,6 +4,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import passport from "passport";
+import morgan from "morgan";
 import connectDB from "./config/db.js";
 
 dotenv.config();
@@ -15,6 +16,7 @@ import "./config/passport.js";
 import authRoutes from "./routes/authRoutes.js";
 import albumRoutes from "./routes/albumRoutes.js";
 import imageRoutes from "./routes/imageRoutes.js";
+import sdkRoutes from "./routes/sdkRoutes.js"
 
 const app = express();
 app.use(express.json());
@@ -25,10 +27,12 @@ app.use(
   }),
 );
 app.use(passport.initialize());
+app.use(morgan("dev"))
 
 app.use("/auth", authRoutes);
 app.use("/albums", albumRoutes);
 app.use("/images", imageRoutes);
+app.use("/ai/chat", sdkRoutes);
 
 app.get("/", (req, res) => {
   res.send("Welcome to expressjs");
