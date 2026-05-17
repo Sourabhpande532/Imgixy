@@ -51,7 +51,9 @@ Watch a walkthrough (5-7 minutes) of all major features of this age:
 
 ---
 
-![](./assets/image1.png)
+<video width="520" height="240" controls>
+  <source src="./assets/kaviospecs.mov.mp4" type="video/mp4">
+</video>
 
 ---
 

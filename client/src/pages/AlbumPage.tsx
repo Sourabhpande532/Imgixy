@@ -171,13 +171,17 @@ const AlbumPage = () => {
             <div className="row g-3">
               {filtered.map((img, i) => (
                 <div
-                  className="col-6 col-md-4 col-lg-3"
+                  className="col-12 col-sm-6 col-md-4 col-lg-3 d-flex"
                   key={img._id}
                   style={{ animationDelay: `${i * 0.05}s` }}
                 >
-                  <div className="kx-img-card">
-                    <div className="kx-img-thumb-wrap">
-                      <img src={img.url} alt={img.person || "photo"} />
+                  <div className="kx-img-card w-100 d-flex flex-column" style={{ height: "100%" }}>
+                    <div className="kx-img-thumb-wrap" style={{ position: "relative", width: "100%", paddingTop: "100%", overflow: "hidden" }}>
+                      <img 
+                        src={img.url} 
+                        alt={img.person || "photo"} 
+                        style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", objectFit: "cover", display: "block" }} 
+                      />
                       {/* Delete overlay button */}
                       <button
                         id={`delete-img-${img._id}`}
