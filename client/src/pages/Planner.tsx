@@ -244,7 +244,7 @@ const Planner = () => {
                                 ) : (
                                     <>
                                         <i className="fas fa-magic"></i>
-                                        <span>Generate Plan</span>
+                                        <span className='py-2'>Generate Plan</span>
                                     </>
                                 )}
                             </button>

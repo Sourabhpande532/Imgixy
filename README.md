@@ -10,7 +10,7 @@ KaviosPix is a full-stack image management system where users can securely uploa
 
 ---
 
-## Quick Start 
+## Quick Start
 
 ```
 git clone https://github.com/Sourabhpande532/Imgixy.git
@@ -21,7 +21,6 @@ npm run dev
 ```
 
 ---
-
 
 ## Technology
 
@@ -35,21 +34,18 @@ npm run dev
 - RESTful APIs
 - Bootstrap (UI)
 
-
 ---
 
-## Demo Video 
+## Demo Video
 
 Watch a walkthrough (5-7 minutes) of all major features of this age:
 [Drive Video Link](https://drive.google.com/file/d/1I6qPh8k2N3v797tYNQmUhBB3up818tEe/view?usp=sharing)
 
 ---
 
-## Reference 
+## Reference
 
-<video width="420" height="240" controls>
-  <source src="./assets/kaviospecs.mov.mp4" type="video/mp4">
-</video>
+![](./assets/kaviospecs.mov.gif)
 ---
 
 ![](./assets/image2.png)
@@ -58,29 +54,32 @@ Watch a walkthrough (5-7 minutes) of all major features of this age:
 
 ![](./assets/image1.png)
 
-## Features 
+## Features
 
-### Authentication 
-- Google OAuth login 
+### Authentication
+
+- Google OAuth login
 - JWT-based secure access
 
 ---
-### Albums 
-- Create, update, delete albums 
-- Share albums via email 
-- View owned & shared albums 
+
+### Albums
+
+- Create, update, delete albums
+- Share albums via email
+- View owned & shared albums
 
 ---
 
-### Images 
+### Images
 
 - Upload images (JPG,PNG,GIF, max 5MB)
 - Store using Cloudinary
 - Add metadata:
-  - tags 
+  - tags
   - person name
-  - Favorite 
-  - comments 
+  - Favorite
+  - comments
 
 ---
 
@@ -92,7 +91,7 @@ Watch a walkthrough (5-7 minutes) of all major features of this age:
 
 ---
 
-### UI/UX 
+### UI/UX
 
 - Responsive design
 - Bootstrap UI
@@ -105,10 +104,12 @@ Watch a walkthrough (5-7 minutes) of all major features of this age:
 ## API (Key Endpoints)
 
 **Auth**
+
 - GET /auth/google
 - GET /auth/google/callback
 
 ---
+
 **Albums**
 
 - POST /albums
@@ -120,6 +121,7 @@ Watch a walkthrough (5-7 minutes) of all major features of this age:
 ---
 
 **Images**
+
 - POST /images/:albumId
 - GET /images/:albumId
 - PUT /images/:imageId/favorite
@@ -128,11 +130,10 @@ Watch a walkthrough (5-7 minutes) of all major features of this age:
 
 ---
 
-
-
 ## Environment Setup
 
 **Backend (.env)**
+
 ```
 PORT=5001
 
@@ -158,7 +159,7 @@ VITE_API_URL=http://localhost:5001
 
 ```
 
-## Contact 
+## Contact
 
 For bugs or feature requests, please reach out to [sourabhpande43@gmail.com](mailto:sourabhpande43@gmail.com)
 
