@@ -38,8 +38,47 @@ const ALBUM_THEMES = [
 const Planner = () => {
     const [form, setForm] = useState({ city: "Cinematic", country: "Neon Cityscape", days: 3 });
     const [loading, setLoading] = useState(false);
+    const [statusText, setStatusText] = useState("Analyzing...");
     const [data, setData] = useState<PlanData | null>(null);
     const [error, setError] = useState("");
+
+    async function processSSEResponse(res: Response) {
+        const contentType = res.headers.get("content-type") || "";
+        if (contentType.includes("text/event-stream")) {
+            const reader = res.body?.getReader();
+            const decoder = new TextDecoder();
+            let buffer = "";
+            let resultData = null;
+            while (true) {
+                const { done, value } = await reader!.read();
+                if (done) break;
+                buffer += decoder.decode(value, { stream: true });
+                const parts = buffer.split('\n\n');
+                buffer = parts.pop() || "";
+                for (const part of parts) {
+                    const lines = part.split('\n');
+                    let eventType = '';
+                    let dataStr = '';
+                    for (const line of lines) {
+                        if (line.startsWith('event: ')) eventType = line.substring(7).trim();
+                        else if (line.startsWith('data: ')) dataStr = line.substring(6).trim();
+                    }
+                    if (eventType === 'done' && dataStr) {
+                        resultData = JSON.parse(dataStr).data;
+                    } else if (eventType === 'error' && dataStr) {
+                        throw new Error(JSON.parse(dataStr).error || JSON.parse(dataStr).text);
+                    } else if (eventType === 'status' && dataStr) {
+                        setStatusText(JSON.parse(dataStr).text);
+                    }
+                }
+            }
+            if (resultData) setData(resultData);
+        } else {
+            const result = await res.json();
+            if (!res.ok) throw new Error((result && result.error) || "Something went wrong");
+            setData(result as PlanData);
+        }
+    }
 
     function handleSelectChange(name: string, value: string | number) {
         setForm(prev => ({
@@ -51,6 +90,7 @@ const Planner = () => {
     async function handleSubmit(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
         setLoading(true);
+        setStatusText("Analyzing...");
         setError("");
         setData(null);
         try {
@@ -59,9 +99,7 @@ const Planner = () => {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(form),
             });
-            const result = await res.json() as { error?: string };
-            if (!res.ok) throw new Error((result && result.error) || "Something went wrong");
-            setData(result as PlanData);
+            await processSSEResponse(res);
             
             // Sync with URL query parameters for user sharing/bookmarks
             window.history.pushState(
@@ -69,10 +107,15 @@ const Planner = () => {
                 "",
                 `?city=${encodeURIComponent(form.city)}&country=${encodeURIComponent(form.country)}&days=${form.days}`,
             );
-        } catch {
-            setError("Unable to generate response right now. Please try again after some time.");
+        } catch (err: unknown) {
+            if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError("Unable to generate response right now. Please try again after some time.");
+            }
         } finally {
             setLoading(false);
+            setStatusText("Analyzing...");
         }
     }
 
@@ -221,30 +264,31 @@ const Planner = () => {
                             </select>
                         </div>
 
-                        <div className="col-12 col-md-2 d-flex align-items-end">
+                        <div className="col-12 col-md-2 d-flex align-items-end mt-3 mt-md-0">
                             <button 
                                 type="submit" 
-                                className="kx-btn-primary w-100 d-flex align-items-center justify-content-center gap-2"
+                                className="kx-btn-primary w-100 d-flex align-items-center justify-content-center gap-2 px-2"
                                 disabled={loading}
                                 style={{
-                                    height: '46px',
+                                    minHeight: '46px',
                                     borderRadius: '12px',
-                                    fontSize: '0.95rem',
+                                    fontSize: '0.75rem',
                                     background: 'linear-gradient(135deg, #a855f7, #7c3aed)',
                                     border: 'none',
                                     boxShadow: '0 4px 14px rgba(124, 58, 237, 0.35)',
-                                    transition: 'all 0.2s ease'
+                                    transition: 'all 0.2s ease',
+                                    overflow: 'hidden'
                                 }}
                             >
                                 {loading ? (
                                     <>
-                                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                        <span>Analyzing...</span>
+                                        <span className="spinner-border spinner-border-sm flex-shrink-0" role="status" aria-hidden="true"></span>
+                                        <span className="text-truncate fw-medium" style={{ fontSize: '0.85rem' }} title={statusText}>{statusText}</span>
                                     </>
                                 ) : (
                                     <>
-                                        <i className="fas fa-magic"></i>
-                                        <span className='py-2'>Generate Plan</span>
+                                        <i className="fas fa-magic flex-shrink-0"></i>
+                                        <span className="text-truncate py-1">Generate Plan</span>
                                     </>
                                 )}
                             </button>

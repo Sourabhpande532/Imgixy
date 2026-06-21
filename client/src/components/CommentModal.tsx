@@ -15,6 +15,19 @@ const CommentModal: React.FC<Props> = ({ imageId, refresh }) => {
 
     await API.post(`/images/${imageId}/comment`, { comment });
 
+    // Directly close modal via DOM — reliable across every re-open
+    const modalEl = document.getElementById("commentModal");
+    if (modalEl) {
+      modalEl.classList.remove("show");
+      modalEl.style.display = "none";
+      modalEl.removeAttribute("aria-modal");
+      modalEl.setAttribute("aria-hidden", "true");
+    }
+    document.querySelectorAll(".modal-backdrop").forEach((el) => el.remove());
+    document.body.classList.remove("modal-open");
+    document.body.style.removeProperty("overflow");
+    document.body.style.removeProperty("padding-right");
+
     setComment("");
     refresh();
     toast.success("Comment added!");

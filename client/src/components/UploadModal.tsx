@@ -26,14 +26,39 @@ const UploadModal: React.FC<Props> = ({ albumId, refresh }) => {
     try {
       setUploading(true);
       await API.post(`/images/${albumId}`, formData);
+
+      // Directly close modal via DOM — reliable across every re-open
+      const modalEl = document.getElementById("uploadModal");
+      if (modalEl) {
+        modalEl.classList.remove("show");
+        modalEl.style.display = "none";
+        modalEl.removeAttribute("aria-modal");
+        modalEl.setAttribute("aria-hidden", "true");
+      }
+      document.querySelectorAll(".modal-backdrop").forEach((el) => el.remove());
+      document.body.classList.remove("modal-open");
+      document.body.style.removeProperty("overflow");
+      document.body.style.removeProperty("padding-right");
+
       refresh();
       toast.success("Photo uploaded! 🎉");
       setFile(null);
       setTags("");
       setPerson("");
       setIsFavorite(false);
-    } catch {
-      toast.error("Upload failed, please try again");
+    } catch (err: unknown) {
+      // Show the exact server error message if available
+      let message = "Upload failed, please try again";
+      if (err instanceof Error) message = err.message;
+      try {
+        // Axios wraps server response in err.response.data
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const axiosErr = err as any;
+        if (axiosErr?.response?.data?.error) {
+          message = axiosErr.response.data.error;
+        }
+      } catch { /* ignore */ }
+      toast.error(message);
     } finally {
       setUploading(false);
     }

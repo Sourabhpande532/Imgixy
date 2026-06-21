@@ -10,7 +10,7 @@ const client = new OpenAI({
   apiKey: process.env.OPENROUTER_API_KEY,
 });
 
-const MODEL = "nvidia/nemotron-3-nano-30b-a3b:free";
+const MODEL = "openai/gpt-4o-mini";
 
 const SYSTEM_PROMPT = `
 You are the KaviosPix AI Photo & Aesthetic Planner, a professional creative director and photo curation assistant.
@@ -50,41 +50,82 @@ async function generateAestheticPlan(photoStyle, albumTheme, count) {
   return response.choices?.[0]?.message?.content || "";
 }
 
+// SSE helper
+const sendSSE = (res, event, data) => {
+  res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+};
+
 router.get("/sdk/plan", async (req, res) => {
+  // Setup SSE headers
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.flushHeaders();
+
   const city = req.query.city || "Cinematic";
   const country = req.query.country || "Neon Cityscape";
   const days = Number(req.query.days) || 3;
+  
+  sendSSE(res, 'status', { text: '🔍 Analyzing your aesthetic request...', type: 'thinking' });
+
   try {
+    sendSSE(res, 'status', { text: '🧠 AI is generating creative plan...', type: 'thinking' });
     const content = await generateAestheticPlan(city, country, days);
     const parsed = tryParseModelJSON(content);
-    if (parsed.ok) return res.json(parsed.value);
-    return res.status(502).json({
-      error: "Unable to generate response right now. Please try again after some time.",
-      raw: content,
-    });
+    
+    if (parsed.ok) {
+      sendSSE(res, 'done', { data: parsed.value });
+    } else {
+      sendSSE(res, 'error', { 
+        error: "Unable to generate response right now. Please try again after some time.", 
+        raw: content 
+      });
+    }
   } catch (error) {
-    return res.status(500).json({
-      error: "Unable to generate response right now. Please try again after some time.",
-      detail: error.message,
+    sendSSE(res, 'error', { 
+      error: "Unable to generate response right now. Please try again after some time.", 
+      detail: error.message 
     });
+  } finally {
+    res.end();
   }
 });
 
 router.post("/sdk/plan/generate", async (req, res) => {
+  // Setup SSE headers
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.flushHeaders();
+
   const { city, country, days } = req.body;
+  
+  sendSSE(res, 'status', { text: '🔍', type: 'thinking' });
+
   try {
+    sendSSE(res, 'status', { text: '...', type: 'thinking' });
     const content = await generateAestheticPlan(city, country, days);
     const parsed = tryParseModelJSON(content);
-    if (parsed.ok) return res.json(parsed.value);
-    return res.status(502).json({
-      error: "Unable to generate response right now. Please try again after some time.",
-      raw: content,
-    });
+    
+    if (parsed.ok) {
+      sendSSE(res, 'done', { data: parsed.value });
+    } else {
+      sendSSE(res, 'error', { 
+        error: "Unable to generate response right now. Please try again after some time.", 
+        raw: content 
+      });
+    }
   } catch (error) {
-    return res.status(500).json({
-      error: "Unable to generate response right now. Please try again after some time.",
-      detail: error.message,
+    sendSSE(res, 'error', { 
+      error: "Unable to generate response right now. Please try again after some time.", 
+      detail: error.message 
     });
+  } finally {
+    res.end();
   }
 });
 
