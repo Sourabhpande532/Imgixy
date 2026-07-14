@@ -21,7 +21,7 @@ function Login() {
         {/* Animated emoji logo */}
         <span className="kx-login-emoji">📸</span>
 
-        <h1 className="kx-login-title">KaviosPix</h1>
+        <h1 className="kx-login-title">Imgixy</h1>
         <p className="kx-login-subtitle">
           Store, organize &amp; relive your memories
         </p>
