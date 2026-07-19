@@ -3,6 +3,7 @@ import API, { setToken } from "../services/api";
 import Navbar from "../components/Navbar";
 import CreateAlbumModal from "../components/CreateAlbumModel";
 import ShareModal from "../components/ShareModal";
+import UpdateAlbumModal from "../components/UpdateAlbumModal";
 import type { AlbumType } from "../types";
 import { toast } from "react-toastify";
 import Planner from "./Planner";
@@ -10,6 +11,7 @@ import Planner from "./Planner";
 const Dashboard = () => {
   const [albums, setAlbums] = useState<AlbumType[]>([]);
   const [selected, setSelected] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [ready, setReady] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -20,7 +22,7 @@ const Dashboard = () => {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setReady(true);
     } else {
-      window.location.href = "/";
+      window.location.href = "/login";
     }
   }, []);
 
@@ -77,19 +79,29 @@ const Dashboard = () => {
               </p>
             </div>
 
-            <button
-              id='create-album-btn'
-              className='kx-create-btn btn'
-              data-bs-toggle='modal'
-              data-bs-target='#createModal'>
-              <i className='fas fa-plus me-2' />
-              New Album
-            </button>
+            <div className='d-flex gap-3 align-items-center'>
+              <input
+                 type="text"
+                 className="kx-input"
+                 placeholder="Search albums..."
+                 value={searchQuery}
+                 onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <button
+                id='create-album-btn'
+                className='kx-create-btn btn text-nowrap'
+                data-bs-toggle='modal'
+                data-bs-target='#createModal'>
+                <i className='fas fa-plus me-2' />
+                New Album
+              </button>
+            </div>
           </div>
 
           {/* Modals */}
           <CreateAlbumModal refresh={fetchAlbums} />
           <ShareModal albumId={selected} />
+          <UpdateAlbumModal album={albums.find(a => a._id === selected) || null} refresh={fetchAlbums} />
 
           {/* Content */}
           {loading ? (
@@ -106,7 +118,7 @@ const Dashboard = () => {
             </div>
           ) : (
             <div className='row g-4'>
-              {albums.map((a, i) => (
+              {albums.filter((a) => a.name.toLowerCase().includes(searchQuery.toLowerCase())).map((a, i) => (
                 <div
                   className='col-12 col-sm-6 col-md-4 col-lg-3'
                   key={a._id}
@@ -140,7 +152,17 @@ const Dashboard = () => {
                           Open Album
                         </button>
 
-                        <div className='d-flex gap-2'>
+                        <div className='d-flex gap-2 flex-wrap'>
+                          <button
+                            id={`edit-album-${a._id}`}
+                            className='kx-btn-share'
+                            data-bs-toggle='modal'
+                            data-bs-target='#updateAlbumModal'
+                            onClick={() => setSelected(a._id)}>
+                            <i className='fas fa-edit me-1' />
+                            Edit
+                          </button>
+
                           <button
                             id={`share-album-${a._id}`}
                             className='kx-btn-share'

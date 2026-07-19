@@ -24,6 +24,8 @@ const AlbumPage = () => {
     if (token) {
       setToken(token);
       setReady(true);
+    } else {
+      window.location.href = "/login";
     }
   }, []);
 

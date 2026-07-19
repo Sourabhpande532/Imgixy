@@ -12,7 +12,7 @@ const Navbar = () => {
       <div className="container d-flex align-items-center justify-content-between">
         <Link to="/dashboard" className="navbar-brand mb-0">
           <i className="fas fa-camera-retro me-2" style={{ color: "#a855f7" }} />
-          KaviosPix
+          Imgixy
         </Link>
 
         <button id="navbar-logout-btn" className="kx-logout-btn" onClick={logout}>

@@ -30,7 +30,17 @@ export const updateAlbum = async (req, res) => {
 export const shareAlbum = async (req, res) => {
   const album = await Album.findById(req.params.id);
 
-  album.sharedWith.push(...req.body.emails);
+  const emails = req.body.emails;
+  if (!emails || !Array.isArray(emails)) {
+    return res.status(400).json({ msg: "Invalid emails provided" });
+  }
+
+  const hasInvalid = emails.some(e => !e.includes('@'));
+  if (hasInvalid) {
+    return res.status(400).json({ msg: "Invalid email format. Must contain @" });
+  }
+
+  album.sharedWith.push(...emails);
   await album.save();
 
   res.json(album);

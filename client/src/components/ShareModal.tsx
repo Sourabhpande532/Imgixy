@@ -12,6 +12,8 @@ const ShareModal: React.FC<Props> = ({ albumId }) => {
   const handleShare = async () => {
     if (!emails.trim()) return toast.error("Enter at least one email");
     const emailList = emails.split(",").map((e) => e.trim());
+    const hasInvalid = emailList.some((e) => !e.includes('@'));
+    if (hasInvalid) return toast.error("Invalid email format. Must contain @");
 
     await API.post(`/albums/${albumId}/share`, { emails: emailList });
 

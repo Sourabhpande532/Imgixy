@@ -188,7 +188,7 @@ const Planner = () => {
                                 borderRadius: '30px',
                                 fontWeight: 600
                             }}>
-                                <i className="fas fa-magic me-1"></i> KaviosPix AI
+                                <i className="fas fa-magic me-1"></i> Imgixy AI
                             </span>
                             <span className="text-muted fs-8">Creative Studio v2.0</span>
                         </div>
@@ -408,9 +408,9 @@ const Planner = () => {
                                 <div className="glass-card p-4" style={{ borderRadius: '20px' }}>
                                     <h4 className="fw-bold fs-5 mb-3 d-flex align-items-center gap-2">
                                         <i className="fas fa-star text-warning"></i>
-                                        <span>KaviosPix Pro Tips</span>
+                                        <span>Imgixy Pro Tips</span>
                                     </h4>
-                                    <p className="text-muted fs-8 mb-3">Expert workflows to elevate color grading & filtering in KaviosPix.</p>
+                                    <p className="text-muted fs-8 mb-3">Expert workflows to elevate color grading & filtering in Imgixy.</p>
                                     <div className="d-flex flex-column gap-3">
                                         {data.local_tips?.map((tip, i) => (
                                             <div key={i} className="d-flex align-items-start gap-3">
