@@ -1,6 +1,6 @@
-## KavioPix
+## Imgixy
 
-KaviosPix is a full-stack image management system where users can securely upload, organize, and share images. We implemented Google OAuth for authentication and used JWT for secure API access. Images are stored using Cloudinary, and metadata like tags, favorites, and comments are managed in MongoDB. The system also supports album sharing via email with controlled permissions.
+Imgixy is a full-stack image management system where users can securely upload, organize, and share images. We implemented Google OAuth for authentication and used JWT for secure API access. Images are stored using Cloudinary, and metadata like tags, favorites, and comments are managed in MongoDB. The system also supports album sharing via email with controlled permissions.
 
 ---
 
@@ -14,7 +14,7 @@ KaviosPix is a full-stack image management system where users can securely uploa
 
 ```
 git clone https://github.com/Sourabhpande532/Imgixy.git
-cd kaviospix
+cd Imgixy
 npm install
 npm run dev
 
@@ -48,11 +48,9 @@ Watch a walkthrough (5-7 minutes) of all major features of this age:
 ![](./assets/kaviospecs.mov.gif)
 ---
 
-![](./assets/image2.png)
+![](./assets/landpage.png)
 
 ---
-
-![](./assets/image1.png)
 
 ## Features
 
