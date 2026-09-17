@@ -1,4 +1,6 @@
-import { useState, useEffect, type FormEvent } from "react"
+import { useState, type FormEvent } from "react";
+import API from "../services/api";
+
 
 type ItineraryDay = { day: number; plan: string };
 
@@ -11,8 +13,6 @@ type PlanData = {
     estimated_budget_eur?: { low?: number | string; mid?: number | string; high?: number | string };
     local_tips?: string[];
 };
-
-const BASE_URL = import.meta.env.VITE_API_URL || "https://imgixy.vercel.app";
 
 const PHOTO_STYLES = [
     "Cinematic",
@@ -36,11 +36,22 @@ const ALBUM_THEMES = [
 ];
 
 const Planner = () => {
-    const [form, setForm] = useState({ city: "Cinematic", country: "Neon Cityscape", days: 3 });
+    const [form, setForm] = useState(() => {
+        const params = new URLSearchParams(window.location.search);
+        const city = params.get("city");
+        const country = params.get("country");
+        const days = params.get("days");
+        return {
+            city: city || "Cinematic",
+            country: country || "Neon Cityscape",
+            days: days ? Number(days) : 3
+        };
+    });
     const [loading, setLoading] = useState(false);
     const [statusText, setStatusText] = useState("Analyzing...");
     const [data, setData] = useState<PlanData | null>(null);
     const [error, setError] = useState("");
+
 
     async function processSSEResponse(res: Response) {
         const contentType = res.headers.get("content-type") || "";
@@ -94,14 +105,15 @@ const Planner = () => {
         setError("");
         setData(null);
         try {
-            const res = await fetch(`${BASE_URL}/ai/chat/sdk/plan/generate`, {
+            const baseUrl = API.defaults.baseURL || "https://imgixy.vercel.app";
+            const cleanBaseUrl = baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl;
+            const res = await fetch(`${cleanBaseUrl}/ai/chat/sdk/plan/generate`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(form),
             });
             await processSSEResponse(res);
             
-            // Sync with URL query parameters for user sharing/bookmarks
             window.history.pushState(
                 {},
                 "",
@@ -119,22 +131,7 @@ const Planner = () => {
         }
     }
 
-    // 🔹 On page load → check URL params and populate, but DO NOT auto-generate
-    useEffect(() => {
-        const params = new URLSearchParams(window.location.search);
-        const city = params.get("city");
-        const country = params.get("country");
-        const days = params.get("days");
 
-        if (city || country || days) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
-            setForm({
-                city: city || "Cinematic",
-                country: country || "Neon Cityscape",
-                days: Number(days) || 3
-            });
-        }
-    }, []);
 
     return (
         <div className="container py-4">
@@ -144,8 +141,8 @@ const Planner = () => {
                 }
                 .hover-scale:hover {
                     transform: translateY(-2px);
-                    border-color: rgba(168, 85, 247, 0.25) !important;
-                    box-shadow: 0 4px 20px rgba(168, 85, 247, 0.1) !important;
+                    border-color: rgba(217, 119, 6, 0.3) !important;
+                    box-shadow: 0 4px 20px rgba(217, 119, 6, 0.12) !important;
                     background: rgba(255, 255, 255, 0.05) !important;
                 }
                 .bg-white-5 {
@@ -166,25 +163,25 @@ const Planner = () => {
                 }
             `}</style>
 
-            <div className="glass-card p-4 p-md-5 mb-5 shadow-lg position-relative overflow-hidden" style={{ borderRadius: "24px", border: "1px solid rgba(255, 255, 255, 0.08)" }}>
-                {/* Decorative background glow */}
+            <div className="glass-card p-4 p-md-5 mb-5 shadow-lg position-relative overflow-hidden" style={{ borderRadius: "22px", border: "1px solid var(--glass-border)" }}>
+                {/* Decorative warm background glow */}
                 <div style={{
                     position: 'absolute',
                     top: '-20%',
                     right: '-10%',
                     width: '300px',
                     height: '300px',
-                    background: 'radial-gradient(circle, rgba(168, 85, 247, 0.15) 0%, transparent 70%)',
+                    background: 'radial-gradient(circle, rgba(217, 119, 6, 0.12) 0%, transparent 70%)',
                     pointerEvents: 'none'
                 }} />
                 
                 <div className="row align-items-center mb-4">
                     <div className="col-12 col-md-8">
                         <div className="d-flex align-items-center mb-2">
-                            <span className="badge bg-purple-glow text-purple me-2 px-3 py-2 fs-7" style={{ 
-                                background: 'rgba(168, 85, 247, 0.15)', 
-                                border: '1px solid rgba(168, 85, 247, 0.3)',
-                                color: '#c084fc',
+                            <span className="badge me-2 px-3 py-2 fs-7" style={{ 
+                                background: 'rgba(217, 119, 6, 0.12)', 
+                                border: '1px solid rgba(217, 119, 6, 0.3)',
+                                color: '#f59e0b',
                                 borderRadius: '30px',
                                 fontWeight: 600
                             }}>
@@ -192,11 +189,11 @@ const Planner = () => {
                             </span>
                             <span className="text-muted fs-8">Creative Studio v2.0</span>
                         </div>
-                        <h2 className="display-6 fw-bold mb-2" style={{ background: 'linear-gradient(135deg, #f8fafc 30%, #a855f7 90%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                        <h2 className="display-6 fw-bold mb-2" style={{ color: "var(--text-h)" }}>
                             AI Creative Director
                         </h2>
-                        <p className="text-muted-custom fs-6 mb-0" style={{ color: 'var(--text-muted)' }}>
-                            Choose your photo aesthetic and album theme. Our neural model will craft a bespoke visual direction, shooting tips, and pro composition guidelines.
+                        <p className="fs-6 mb-0" style={{ color: 'var(--text-muted)' }}>
+                            Choose your photo aesthetic and album theme. Our model will craft a bespoke visual direction, shooting tips, and pro composition guidelines.
                         </p>
                     </div>
                 </div>
@@ -210,15 +207,15 @@ const Planner = () => {
                                 value={form.city}
                                 onChange={(e) => handleSelectChange("city", e.target.value)}
                                 style={{
-                                    background: 'rgba(255, 255, 255, 0.05)',
+                                    background: 'rgba(255, 255, 255, 0.04)',
                                     border: '1px solid var(--glass-border)',
                                     color: 'var(--text)',
-                                    borderRadius: '12px',
+                                    borderRadius: '10px',
                                     padding: '10px 14px'
                                 }}
                             >
                                 {PHOTO_STYLES.map(style => (
-                                    <option key={style} value={style} style={{ background: '#16161e', color: '#fff' }}>{style}</option>
+                                    <option key={style} value={style} style={{ background: '#141e24', color: '#fff' }}>{style}</option>
                                 ))}
                             </select>
                         </div>
@@ -230,15 +227,15 @@ const Planner = () => {
                                 value={form.country}
                                 onChange={(e) => handleSelectChange("country", e.target.value)}
                                 style={{
-                                    background: 'rgba(255, 255, 255, 0.05)',
+                                    background: 'rgba(255, 255, 255, 0.04)',
                                     border: '1px solid var(--glass-border)',
                                     color: 'var(--text)',
-                                    borderRadius: '12px',
+                                    borderRadius: '10px',
                                     padding: '10px 14px'
                                 }}
                             >
                                 {ALBUM_THEMES.map(theme => (
-                                    <option key={theme} value={theme} style={{ background: '#16161e', color: '#fff' }}>{theme}</option>
+                                    <option key={theme} value={theme} style={{ background: '#141e24', color: '#fff' }}>{theme}</option>
                                 ))}
                             </select>
                         </div>
@@ -250,17 +247,17 @@ const Planner = () => {
                                 value={form.days}
                                 onChange={(e) => handleSelectChange("days", Number(e.target.value))}
                                 style={{
-                                    background: 'rgba(255, 255, 255, 0.05)',
+                                    background: 'rgba(255, 255, 255, 0.04)',
                                     border: '1px solid var(--glass-border)',
                                     color: 'var(--text)',
-                                    borderRadius: '12px',
+                                    borderRadius: '10px',
                                     padding: '10px 14px'
                                 }}
                             >
-                                <option value={3} style={{ background: '#16161e', color: '#fff' }}>3 Slots</option>
-                                <option value={5} style={{ background: '#16161e', color: '#fff' }}>5 Slots</option>
-                                <option value={7} style={{ background: '#16161e', color: '#fff' }}>7 Slots</option>
-                                <option value={10} style={{ background: '#16161e', color: '#fff' }}>10 Slots</option>
+                                <option value={3} style={{ background: '#141e24', color: '#fff' }}>3 Slots</option>
+                                <option value={5} style={{ background: '#141e24', color: '#fff' }}>5 Slots</option>
+                                <option value={7} style={{ background: '#141e24', color: '#fff' }}>7 Slots</option>
+                                <option value={10} style={{ background: '#141e24', color: '#fff' }}>10 Slots</option>
                             </select>
                         </div>
 
@@ -271,11 +268,11 @@ const Planner = () => {
                                 disabled={loading}
                                 style={{
                                     minHeight: '46px',
-                                    borderRadius: '12px',
-                                    fontSize: '0.75rem',
-                                    background: 'linear-gradient(135deg, #a855f7, #7c3aed)',
+                                    borderRadius: '10px',
+                                    fontSize: '0.82rem',
+                                    background: 'var(--accent)',
                                     border: 'none',
-                                    boxShadow: '0 4px 14px rgba(124, 58, 237, 0.35)',
+                                    boxShadow: '0 4px 14px var(--accent-glow)',
                                     transition: 'all 0.2s ease',
                                     overflow: 'hidden'
                                 }}
@@ -298,7 +295,7 @@ const Planner = () => {
 
                 {/* ERROR STATE */}
                 {error && (
-                    <div className="alert alert-danger mt-4 d-flex align-items-center gap-3 border-0 shadow-sm" style={{ background: 'rgba(239, 68, 68, 0.12)', color: '#fca5a5', borderRadius: '12px', border: '1px solid rgba(239, 68, 68, 0.25) !important' }}>
+                    <div className="alert alert-danger mt-4 d-flex align-items-center gap-3 border-0 shadow-sm" style={{ background: 'rgba(239, 68, 68, 0.12)', color: '#fca5a5', borderRadius: '10px', border: '1px solid rgba(239, 68, 68, 0.25) !important' }}>
                         <i className="fas fa-exclamation-circle fs-5 text-danger"></i>
                         <div>{error}</div>
                     </div>
@@ -315,7 +312,7 @@ const Planner = () => {
                                 <span className="text-muted fs-7 text-uppercase fw-semibold tracking-wider d-block mb-1" style={{ letterSpacing: '1px' }}>
                                     BESPOKE CREATIVE VISION
                                 </span>
-                                <h3 className="h2 fw-bold text-white mb-3" style={{ background: 'linear-gradient(135deg, #c084fc, #38bdf8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                                <h3 className="h2 fw-bold text-white mb-3" style={{ color: "var(--text-h)" }}>
                                     {data.destination}
                                 </h3>
                                 <div className="d-flex flex-wrap gap-3">
@@ -331,8 +328,8 @@ const Planner = () => {
                             </div>
                             
                             <div className="col-12 col-md-4 text-md-end">
-                                <div className="p-3 bg-purple-glow d-inline-block text-start" style={{ background: 'rgba(168, 85, 247, 0.08)', borderRadius: '16px', border: '1px solid rgba(168, 85, 247, 0.2)', width: '100%', maxWidth: '280px' }}>
-                                    <span className="fs-8 text-purple fw-semibold tracking-wider d-block mb-1" style={{ letterSpacing: '0.5px', color: '#c084fc' }}>EST. PRODUCTION COST</span>
+                                <div className="p-3 d-inline-block text-start" style={{ background: 'rgba(217, 119, 6, 0.1)', borderRadius: '16px', border: '1px solid rgba(217, 119, 6, 0.25)', width: '100%', maxWidth: '280px' }}>
+                                    <span className="fs-8 fw-semibold tracking-wider d-block mb-1" style={{ letterSpacing: '0.5px', color: '#f59e0b' }}>EST. PRODUCTION COST</span>
                                     <div className="d-flex align-items-baseline gap-1">
                                         <span className="h4 fw-bold text-white mb-0">€{data.estimated_budget_eur?.mid || 0}</span>
                                         <span className="fs-8 text-muted">avg</span>
@@ -348,11 +345,11 @@ const Planner = () => {
                         <div className="col-12 col-lg-8">
                             <div className="glass-card p-4 p-md-5" style={{ borderRadius: '20px' }}>
                                 <h4 className="fw-bold mb-4 d-flex align-items-center gap-2">
-                                    <i className="fas fa-list-ol text-purple" style={{ color: '#a855f7' }}></i>
+                                    <i className="fas fa-list-ol" style={{ color: 'var(--accent)' }}></i>
                                     <span>Creative Workflow & Curation Plan</span>
                                 </h4>
                                 
-                                <div className="position-relative ps-3" style={{ borderLeft: '2px solid rgba(168, 85, 247, 0.15)' }}>
+                                <div className="position-relative ps-3" style={{ borderLeft: '2px solid rgba(217, 119, 6, 0.2)' }}>
                                     {data.sample_itinerary?.map((day, i) => (
                                         <div key={i} className="mb-4 position-relative" style={{ animationDelay: `${i * 0.1}s` }}>
                                             {/* Bullet dot */}
@@ -362,19 +359,19 @@ const Planner = () => {
                                                 width: '14px', 
                                                 height: '14px', 
                                                 borderRadius: '50%', 
-                                                background: 'linear-gradient(135deg, #a855f7, #7c3aed)',
-                                                boxShadow: '0 0 10px rgba(168, 85, 247, 0.5)',
-                                                border: '2px solid #0a0a0f'
+                                                background: 'var(--accent)',
+                                                boxShadow: '0 0 10px var(--accent-glow)',
+                                                border: '2px solid #0f171c'
                                             }} />
                                             
                                             <div className="glass-card p-3 p-md-4 ms-2 hover-scale" style={{ 
                                                 background: 'rgba(255, 255, 255, 0.03)',
-                                                border: '1px solid rgba(255, 255, 255, 0.05)',
+                                                border: '1px solid rgba(255, 255, 255, 0.06)',
                                                 borderRadius: '16px',
                                                 transition: 'all 0.2s ease-in-out'
                                             }}>
                                                 <h5 className="fw-bold fs-6 text-white mb-2">Slot #{day.day}: Creative Execution</h5>
-                                                <p className="text-muted-custom fs-7 mb-0" style={{ color: 'var(--text-muted)', lineHeight: '1.6' }}>
+                                                <p className="fs-7 mb-0" style={{ color: 'var(--text-muted)', lineHeight: '1.6' }}>
                                                     {day.plan}
                                                 </p>
                                             </div>
@@ -390,14 +387,14 @@ const Planner = () => {
                                 {/* Composition Techniques */}
                                 <div className="glass-card p-4" style={{ borderRadius: '20px' }}>
                                     <h4 className="fw-bold fs-5 mb-3 d-flex align-items-center gap-2">
-                                        <i className="fas fa-crop-alt text-purple" style={{ color: '#a855f7' }}></i>
+                                        <i className="fas fa-crop-alt" style={{ color: 'var(--accent)' }}></i>
                                         <span>Composition Guide</span>
                                     </h4>
                                     <p className="text-muted fs-8 mb-3">Key techniques to align framing & visual interest.</p>
                                     <div className="d-flex flex-column gap-2">
                                         {data.top_attractions?.map((item, i) => (
                                             <div key={i} className="d-flex align-items-center gap-2 bg-white-5 p-2" style={{ background: 'rgba(255, 255, 255, 0.04)', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
-                                                <i className="fas fa-check text-purple fs-8" style={{ color: '#a855f7' }}></i>
+                                                <i className="fas fa-check fs-8" style={{ color: 'var(--accent)' }}></i>
                                                 <span className="fs-7 text-white">{item}</span>
                                             </div>
                                         ))}
@@ -414,10 +411,10 @@ const Planner = () => {
                                     <div className="d-flex flex-column gap-3">
                                         {data.local_tips?.map((tip, i) => (
                                             <div key={i} className="d-flex align-items-start gap-3">
-                                                <div className="p-2 bg-warning-glow" style={{ background: 'rgba(245, 158, 11, 0.1)', color: '#fbbf24', borderRadius: '8px', border: '1px solid rgba(245, 158, 11, 0.2)', flexShrink: 0 }}>
+                                                <div className="p-2" style={{ background: 'rgba(245, 158, 11, 0.12)', color: '#fbbf24', borderRadius: '8px', border: '1px solid rgba(245, 158, 11, 0.25)', flexShrink: 0 }}>
                                                     <i className="fas fa-magic fs-8"></i>
                                                 </div>
-                                                <span className="fs-7 text-muted-custom" style={{ color: 'var(--text-muted)', lineHeight: '1.4' }}>{tip}</span>
+                                                <span className="fs-7" style={{ color: 'var(--text-muted)', lineHeight: '1.4' }}>{tip}</span>
                                             </div>
                                         ))}
                                     </div>
@@ -428,7 +425,7 @@ const Planner = () => {
                 </div>
             )}
         </div>
-    )
-}
+    );
+};
 
-export default Planner
+export default Planner;

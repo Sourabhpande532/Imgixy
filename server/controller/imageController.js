@@ -30,7 +30,7 @@ export const getImages = async (req, res) => {
 
   if (req.query.tags) filter.tags = req.query.tags;
 
-  const images = await Image.find(filter);
+  const images = await Image.find(filter).lean();
   res.json(images);
 };
 
@@ -38,12 +38,14 @@ export const getFavorites = async (req, res) => {
   const images = await Image.find({
     albumId: req.params.albumId,
     isFavorite: true,
-  });
+  }).lean();
   res.json(images);
 };
 
 export const toggleFavorite = async (req, res) => {
   const image = await Image.findById(req.params.imageId);
+  if (!image) return res.status(404).json({ error: "Image not found" });
+
   image.isFavorite = req.body.isFavorite;
   await image.save();
 
@@ -52,6 +54,8 @@ export const toggleFavorite = async (req, res) => {
 
 export const addComment = async (req, res) => {
   const image = await Image.findById(req.params.imageId);
+  if (!image) return res.status(404).json({ error: "Image not found" });
+
   image.comments.push(req.body.comment);
   await image.save();
 
@@ -60,9 +64,16 @@ export const addComment = async (req, res) => {
 
 export const deleteImage = async (req, res) => {
   const image = await Image.findById(req.params.imageId);
+  if (!image) return res.status(404).json({ error: "Image not found" });
 
-  await cloudinary.uploader.destroy(image.public_id);
+  if (image.public_id) {
+    try {
+      await cloudinary.uploader.destroy(image.public_id);
+    } catch (err) {
+      console.error("Cloudinary destroy error:", err);
+    }
+  }
   await image.deleteOne();
 
   res.json({ msg: "Deleted" });
-};
+};

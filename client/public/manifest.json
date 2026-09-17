@@ -1,0 +1,23 @@
+{
+  "short_name": "Imgixy",
+  "name": "Imgixy — Digital Photo Vault",
+  "icons": [
+    {
+      "src": "/icons.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192 512x512",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192 512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0f171c",
+  "theme_color": "#0f171c",
+  "display": "standalone",
+  "orientation": "any",
+  "description": "Store, organize, and curate your memories in your personal cloud photo vault."
+}

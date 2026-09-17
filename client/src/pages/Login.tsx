@@ -1,7 +1,6 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { setToken } from "../services/api";
+import API, { setToken } from "../services/api";
 
 function Login() {
   const navigate = useNavigate();
@@ -13,13 +12,19 @@ function Login() {
       setToken(token);
       navigate("/dashboard");
     }
-  }, []);
+  }, [navigate]);
+
+  const handleGoogleLogin = () => {
+    const baseUrl = API.defaults.baseURL || "https://imgixy.vercel.app";
+    const cleanBaseUrl = baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl;
+    window.open(`${cleanBaseUrl}/auth/google`, "_self");
+  };
 
   return (
     <div className="kx-login-page">
       <div className="kx-login-card text-center">
         {/* Animated emoji logo */}
-        <span className="kx-login-emoji">📸</span>
+        <span className="kx-login-emoji" role="img" aria-label="Camera">📸</span>
 
         <h1 className="kx-login-title">Imgixy</h1>
         <p className="kx-login-subtitle">
@@ -28,17 +33,17 @@ function Login() {
 
         {/* Feature pills */}
         <div className="d-flex justify-content-center gap-2 flex-wrap mb-4">
-          {["📁 Albums", "☁️ Cloud", "⭐ Favorites"].map((f) => (
+          {["📁 Smart Albums", "☁️ Cloud Vault", "⭐ Curated Favorites"].map((f) => (
             <span
               key={f}
               style={{
-                background: "rgba(168,85,247,0.12)",
-                border: "1px solid rgba(168,85,247,0.25)",
-                color: "#c084fc",
+                background: "rgba(217, 119, 6, 0.12)",
+                border: "1px solid rgba(217, 119, 6, 0.25)",
+                color: "#f59e0b",
                 borderRadius: "99px",
-                padding: "0.25rem 0.85rem",
+                padding: "0.3rem 0.9rem",
                 fontSize: "0.78rem",
-                fontWeight: 500,
+                fontWeight: 600,
               }}
             >
               {f}
@@ -49,9 +54,8 @@ function Login() {
         <button
           id="google-login-btn"
           className="kx-google-btn"
-          onClick={() =>
-            window.open("https://imgixy.vercel.app/auth/google", "_self")
-          }
+          onClick={handleGoogleLogin}
+          aria-label="Continue with Google Authentication"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -62,7 +66,7 @@ function Login() {
           Continue with Google
         </button>
 
-        <p style={{ marginTop: "1.5rem", fontSize: "0.75rem", color: "var(--text-muted)" }}>
+        <p style={{ marginTop: "1.5rem", fontSize: "0.78rem", color: "var(--text-muted)" }}>
           By continuing, you agree to our Terms &amp; Privacy Policy
         </p>
       </div>

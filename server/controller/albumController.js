@@ -11,9 +11,10 @@ export const createAlbum = async (req, res) => {
 export const getAlbums = async (req, res) => {
   const albums = await Album.find({
     $or: [{ ownerId: req.user.id }, { sharedWith: req.user.email }],
-  });
+  }).lean();
   res.json(albums);
 };
+
 
 export const updateAlbum = async (req, res) => {
   const album = await Album.findById(req.params.id);

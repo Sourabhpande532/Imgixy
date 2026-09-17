@@ -26,43 +26,41 @@ const Landing = () => {
   return (
     <div className="landing-container">
       <div className="landing-content">
-        <div className="animated-logo">📸</div>
-        <h1 className="landing-title">Welcome to Imgixy</h1>
+        <div className="animated-logo" aria-hidden="true">📸</div>
+        <h1 className="landing-title">
+          Curate Your Digital <span>Memories</span>
+        </h1>
         <p className="landing-subtitle">
-          Your ultimate digital vault to store, organize, and relive all your precious memories in one secure place.
+          Your hand-crafted cloud vault to store, organize, and relive all your precious photo collections in one secure place.
         </p>
 
         <button
           className="get-started-btn"
           onClick={() => navigate("/login")}
+          aria-label="Get Started with Imgixy"
         >
-          Get Started
-          <i className="fas fa-arrow-right ms-2" />
+          <span>Get Started</span>
+          <i className="fas fa-arrow-right ms-1" />
         </button>
 
         <div className="features-grid">
           <div className="feature-item">
-            <span className="feature-icon">📁</span>
-            <h3>Smart Albums</h3>
-            <p>Organize photos intelligently with tags and folders.</p>
+            <span className="feature-icon" role="img" aria-label="Folder">📁</span>
+            <h3>Smart Curation</h3>
+            <p>Organize photos intelligently with tags, metadata, and custom collections.</p>
           </div>
           <div className="feature-item">
-            <span className="feature-icon">✨</span>
-            <h3>AI Planner</h3>
-            <p>Generate bespoke creative visions and aesthetic themes.</p>
+            <span className="feature-icon" role="img" aria-label="Sparkles">✨</span>
+            <h3>AI Director</h3>
+            <p>Generate bespoke creative visions, lighting setups, and aesthetic guidelines.</p>
           </div>
           <div className="feature-item">
-            <span className="feature-icon">☁️</span>
-            <h3>Cloud Sync</h3>
-            <p>Access your memories from any device, anywhere.</p>
+            <span className="feature-icon" role="img" aria-label="Cloud">☁️</span>
+            <h3>Secure Vault</h3>
+            <p>Cloud-synchronized photo storage with email sharing and privacy controls.</p>
           </div>
         </div>
       </div>
-
-      {/* Background decorations */}
-      <div className="bg-shape shape-1"></div>
-      <div className="bg-shape shape-2"></div>
-      <div className="bg-shape shape-3"></div>
     </div>
   );
 };

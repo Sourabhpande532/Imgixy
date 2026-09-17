@@ -1,6 +1,4 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable react-hooks/set-state-in-effect */
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState, useMemo } from "react";
 import API, { setToken } from "../services/api";
 import Navbar from "../components/Navbar";
@@ -9,41 +7,67 @@ import type { Image } from "../types";
 import UploadModal from "../components/UploadModal";
 import { toast } from "react-toastify";
 
+// Helper for dynamic Cloudinary image format & size optimization
+const getOptimizedImageUrl = (url: string) => {
+  if (!url) return url;
+  if (url.includes("/upload/") && !url.includes("/upload/f_auto")) {
+    return url.replace("/upload/", "/upload/f_auto,q_auto,w_600/");
+  }
+  return url;
+};
+
 const AlbumPage = () => {
   const { albumId } = useParams();
+  const navigate = useNavigate();
   const [images, setImages] = useState<Image[]>([]);
   const [selected, setSelected] = useState<string>("");
-  const [ready, setReady] = useState(false);
-
-  // ── Filter state ──────────────────────────────────────
   const [showFavOnly, setShowFavOnly] = useState(false);
   const [tagFilter, setTagFilter] = useState("");
 
-  useEffect(() => {
-    const token = localStorage.getItem("kavioToken");
-    if (token) {
-      setToken(token);
-      setReady(true);
-    } else {
-      window.location.href = "/login";
-    }
-  }, []);
-
   const fetchImages = async () => {
-    const res = await API.get(`/images/${albumId}`);
-    setImages(res.data);
+    if (!albumId) return;
+    try {
+      const res = await API.get(`/images/${albumId}`);
+      setImages(res.data);
+    } catch {
+      toast.error("Failed to load album images");
+    }
   };
 
   useEffect(() => {
-    if (!ready) return;
-    fetchImages();
-  }, [ready]);
+    const token = localStorage.getItem("kavioToken");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+    setToken(token);
+    if (!albumId) return;
+
+    let isMounted = true;
+    API.get(`/images/${albumId}`)
+      .then((res) => {
+        if (isMounted) setImages(res.data);
+      })
+      .catch(() => {
+        toast.error("Failed to load album images");
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [albumId, navigate]);
+
+
 
   const toggleFav = async (img: Image) => {
-    await API.put(`/images/${img._id}/favorite`, {
-      isFavorite: !img.isFavorite,
-    });
-    fetchImages();
+    try {
+      await API.put(`/images/${img._id}/favorite`, {
+        isFavorite: !img.isFavorite,
+      });
+      fetchImages();
+    } catch {
+      toast.error("Failed to update favorite status");
+    }
   };
 
   const deleteImage = async (imgId: string) => {
@@ -57,7 +81,7 @@ const AlbumPage = () => {
     }
   };
 
-  // ── Derived filtered list (client-side, no extra API call) ──
+  // ── Derived filtered list (client-side) ──
   const filtered = useMemo(() => {
     let list = images;
     if (showFavOnly) list = list.filter((i) => i.isFavorite);
@@ -97,6 +121,7 @@ const AlbumPage = () => {
               className="kx-create-btn btn"
               data-bs-toggle="modal"
               data-bs-target="#uploadModal"
+              aria-label="Upload Photo"
             >
               <i className="fas fa-cloud-upload-alt me-2" />
               Upload Photo
@@ -105,11 +130,12 @@ const AlbumPage = () => {
 
           {/* ── Filter bar ── */}
           <div className="kx-filter-bar">
-            {/* Favourites toggle */}
+            {/* Favorites toggle */}
             <button
               id="filter-fav-btn"
               className={`kx-filter-pill ${showFavOnly ? "active" : ""}`}
               onClick={() => setShowFavOnly((v) => !v)}
+              aria-label="Filter by favorites"
             >
               <i className={`${showFavOnly ? "fas" : "far"} fa-star me-1`} />
               {showFavOnly ? "Favorites only" : "All photos"}
@@ -124,9 +150,14 @@ const AlbumPage = () => {
                 placeholder="Filter by tag…"
                 value={tagFilter}
                 onChange={(e) => setTagFilter(e.target.value)}
+                aria-label="Filter photos by tag"
               />
               {tagFilter && (
-                <button className="kx-filter-clear" onClick={() => setTagFilter("")}>
+                <button
+                  className="kx-filter-clear"
+                  onClick={() => setTagFilter("")}
+                  aria-label="Clear tag filter"
+                >
                   <i className="fas fa-times" />
                 </button>
               )}
@@ -140,6 +171,7 @@ const AlbumPage = () => {
                     key={t}
                     className={`kx-tag-chip ${tagFilter === t ? "active" : ""}`}
                     onClick={() => setTagFilter(tagFilter === t ? "" : t)}
+                    aria-label={`Tag #${t}`}
                   >
                     #{t}
                   </button>
@@ -175,13 +207,14 @@ const AlbumPage = () => {
                 <div
                   className="col-12 col-sm-6 col-md-4 col-lg-3 d-flex"
                   key={img._id}
-                  style={{ animationDelay: `${i * 0.05}s` }}
+                  style={{ animationDelay: `${i * 0.04}s` }}
                 >
                   <div className="kx-img-card w-100 d-flex flex-column" style={{ height: "100%" }}>
                     <div className="kx-img-thumb-wrap" style={{ position: "relative", width: "100%", paddingTop: "100%", overflow: "hidden" }}>
                       <img 
-                        src={img.url} 
-                        alt={img.person || "photo"} 
+                        src={getOptimizedImageUrl(img.url)} 
+                        alt={img.name || img.person || "Photo thumbnail"}
+                        loading="lazy"
                         style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", objectFit: "cover", display: "block" }} 
                       />
                       {/* Delete overlay button */}
@@ -190,6 +223,7 @@ const AlbumPage = () => {
                         className="kx-img-del-btn"
                         onClick={() => deleteImage(img._id)}
                         title="Delete photo"
+                        aria-label="Delete photo"
                       >
                         <i className="fas fa-trash-alt" />
                       </button>
@@ -232,6 +266,7 @@ const AlbumPage = () => {
                           id={`fav-${img._id}`}
                           className={`kx-btn-fav ${img.isFavorite ? "active" : ""}`}
                           onClick={() => toggleFav(img)}
+                          aria-label={img.isFavorite ? "Unstar photo" : "Star photo"}
                         >
                           <i className={`${img.isFavorite ? "fas" : "far"} fa-star me-1`} />
                           {img.isFavorite ? "Starred" : "Star"}
@@ -243,6 +278,7 @@ const AlbumPage = () => {
                           data-bs-toggle="modal"
                           data-bs-target="#commentModal"
                           onClick={() => setSelected(img._id)}
+                          aria-label="Add comment to photo"
                         >
                           <i className="far fa-comment me-1" />
                           {img.comments?.length > 0 ? img.comments.length : ""}
@@ -261,7 +297,7 @@ const AlbumPage = () => {
                           <ul className="kx-comments-list">
                             {img.comments.map((c, idx) => (
                               <li key={idx} className="kx-comment-item">
-                                <i className="fas fa-circle-user me-1" style={{ color: "var(--accent)", fontSize: "0.7rem" }} />
+                                <i className="fas fa-circle-user me-1" style={{ color: "var(--accent)", fontSize: "0.75rem" }} />
                                 {c}
                               </li>
                             ))}
