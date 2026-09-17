@@ -1,8 +1,8 @@
-/* eslint-disable react-hooks/set-state-in-effect */
-import { useState, useEffect } from "react";
+import { useState } from "react";
+
 import API from "../services/api";
-import { Modal } from "bootstrap";
 import { toast } from "react-toastify";
+import { closeModal } from "../utils/modal";
 import type { AlbumType } from "../types";
 
 interface Props {
@@ -11,34 +11,29 @@ interface Props {
 }
 
 const UpdateAlbumModal: React.FC<Props> = ({ album, refresh }) => {
-  const [description, setDescription] = useState("");
+  const [description, setDescription] = useState(album?.description || "");
+  const [prevAlbumId, setPrevAlbumId] = useState(album?._id);
 
-  useEffect(() => {
-    if (album) {
-      setDescription(album.description || "");
-    }
-  }, [album]);
+  if (album?._id !== prevAlbumId) {
+    setPrevAlbumId(album?._id);
+    setDescription(album?.description || "");
+  }
+
 
   const handleUpdate = async () => {
     if (!album) return;
     try {
       await API.put(`/albums/${album._id}`, { description });
 
+      closeModal("updateAlbumModal");
       refresh();
       toast.success("Album updated successfully 🚀");
-
-      const modalEl = document.getElementById("updateAlbumModal");
-      const modal = Modal.getOrCreateInstance(modalEl!);
-      modal.hide();
-
-      document.querySelectorAll(".modal-backdrop").forEach((el) => el.remove());
-      document.body.classList.remove("modal-open");
-      document.body.style.paddingRight = "";
     } catch (err) {
       toast.error("Failed to update album");
       console.error(err);
     }
   };
+
 
   return (
     <div className="modal fade" id="updateAlbumModal" tabIndex={-1}>

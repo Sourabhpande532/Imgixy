@@ -1,7 +1,8 @@
 import { useState } from "react";
 import API from "../services/api";
-import { Modal } from "bootstrap";
 import { toast } from "react-toastify";
+import { closeModal } from "../utils/modal";
+
 
 interface Props {
   refresh: () => void;
@@ -21,20 +22,14 @@ const CreateAlbumModal: React.FC<Props> = ({ refresh }) => {
       setDescription("");
       refresh();
 
+      closeModal("createModal");
       toast.success("Album created successfully 🚀");
-
-      const modalEl = document.getElementById("createModal");
-      const modal = Modal.getOrCreateInstance(modalEl!);
-      modal.hide();
-
-      document.querySelectorAll(".modal-backdrop").forEach((el) => el.remove());
-      document.body.classList.remove("modal-open");
-      document.body.style.paddingRight = "";
     } catch (err) {
       toast.error("Something went wrong");
       console.error(err);
     }
   };
+
 
   return (
     <div className="modal fade" id="createModal" tabIndex={-1}>

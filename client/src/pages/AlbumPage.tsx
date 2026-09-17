@@ -210,13 +210,15 @@ const AlbumPage = () => {
                   style={{ animationDelay: `${i * 0.04}s` }}
                 >
                   <div className="kx-img-card w-100 d-flex flex-column" style={{ height: "100%" }}>
-                    <div className="kx-img-thumb-wrap" style={{ position: "relative", width: "100%", paddingTop: "100%", overflow: "hidden" }}>
+
+                    <div className="kx-img-thumb-wrap">
                       <img 
                         src={getOptimizedImageUrl(img.url)} 
                         alt={img.name || img.person || "Photo thumbnail"}
                         loading="lazy"
-                        style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", objectFit: "cover", display: "block" }} 
                       />
+
+
                       {/* Delete overlay button */}
                       <button
                         id={`delete-img-${img._id}`}

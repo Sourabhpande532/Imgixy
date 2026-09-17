@@ -1,6 +1,7 @@
 import { useState } from "react";
 import API from "../services/api";
 import { toast } from "react-toastify";
+import { closeModal } from "../utils/modal";
 
 interface Props {
   albumId: string;
@@ -15,11 +16,17 @@ const ShareModal: React.FC<Props> = ({ albumId }) => {
     const hasInvalid = emailList.some((e) => !e.includes('@'));
     if (hasInvalid) return toast.error("Invalid email format. Must contain @");
 
-    await API.post(`/albums/${albumId}/share`, { emails: emailList });
+    try {
+      await API.post(`/albums/${albumId}/share`, { emails: emailList });
 
-    setEmails("");
-    toast.success("Album shared successfully! 🎉");
+      closeModal("shareModal");
+      setEmails("");
+      toast.success("Album shared successfully! 🎉");
+    } catch {
+      toast.error("Failed to share album");
+    }
   };
+
 
   return (
     <div className="modal fade" id="shareModal">
