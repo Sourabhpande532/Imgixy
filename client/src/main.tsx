@@ -7,60 +7,27 @@ import "bootstrap/dist/js/bootstrap.bundle.js";
 import "./index.css";
 import App from "./App.tsx";
 
-// Auto-recover if old cached assets fail to load after a fresh deployment
-window.addEventListener("error", (event) => {
-  const isChunkError =
-    event.message?.includes("Failed to load module script") ||
-    event.message?.includes("Loading chunk") ||
-    event.message?.includes("dynamically imported module");
-
-  if (isChunkError) {
-    const key = "imgixy_sw_auto_reload";
-    if (!sessionStorage.getItem(key)) {
-      sessionStorage.setItem(key, "true");
-      // Unregister stale service worker and reload automatically
-      if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.getRegistrations().then((registrations) => {
-          for (const reg of registrations) reg.unregister();
-          window.location.reload();
-        });
-      } else {
-        window.location.reload();
-      }
+// Actively clear any legacy service worker registrations and caches to prevent storage block / MIME type errors
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.getRegistrations().then((registrations) => {
+    for (const registration of registrations) {
+      registration.unregister();
     }
-  }
-});
+  });
+  // Register self-destroying sw.js to clean up clients holding onto old sw
+  navigator.serviceWorker.register("/sw.js").catch(() => {});
+}
+
+if ("caches" in window) {
+  caches.keys().then((names) => {
+    for (const name of names) {
+      caches.delete(name);
+    }
+  });
+}
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <App />
   </StrictMode>,
 );
-
-if ("serviceWorker" in navigator && import.meta.env.PROD) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker
-      .register("/sw.js")
-      .then((registration) => {
-        registration.onupdatefound = () => {
-          const installingWorker = registration.installing;
-          if (installingWorker) {
-            installingWorker.onstatechange = () => {
-              if (
-                installingWorker.state === "installed" &&
-                navigator.serviceWorker.controller
-              ) {
-                // Reload page to activate the new version immediately
-                window.location.reload();
-              }
-            };
-          }
-        };
-      })
-      .catch((err) => {
-        console.error("ServiceWorker registration failed: ", err);
-      });
-  });
-}
-
-
