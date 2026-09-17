@@ -1,7 +1,5 @@
-const CACHE_NAME = 'imgixy-v1';
+const CACHE_NAME = 'imgixy-v2';
 const ASSETS_TO_CACHE = [
-  '/',
-  '/index.html',
   '/manifest.json',
   '/favicon.svg',
   '/icons.svg'
@@ -30,24 +28,49 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Only cache GET requests for same-origin static assets
   if (event.request.method !== 'GET') return;
-  const url = new URL(event.request.url);
 
-  if (url.origin === location.origin) {
+  const url = new URL(event.request.url);
+  if (url.origin !== location.origin) return;
+
+  const isNavigation = event.request.mode === 'navigate' || 
+                       (event.request.headers.get('accept') && event.request.headers.get('accept').includes('text/html'));
+
+  if (isNavigation) {
+    // Network-first strategy for index.html / HTML navigation
     event.respondWith(
-      caches.match(event.request).then((cachedResponse) => {
-        if (cachedResponse) {
-          // Fetch updated version in background
-          fetch(event.request).then((networkResponse) => {
-            if (networkResponse.status === 200) {
-              caches.open(CACHE_NAME).then((cache) => cache.put(event.request, networkResponse));
-            }
-          }).catch(() => {/* ignore network offline */});
-          return cachedResponse;
-        }
-        return fetch(event.request);
-      })
+      fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse.status === 200) {
+            const responseClone = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put('/index.html', responseClone));
+          }
+          return networkResponse;
+        })
+        .catch(() => {
+          return caches.match('/index.html');
+        })
     );
+    return;
   }
+
+  // Assets strategy
+  event.respondWith(
+    caches.match(event.request).then((cachedResponse) => {
+      if (cachedResponse) return cachedResponse;
+
+      return fetch(event.request).then((networkResponse) => {
+        // Prevent Vercel HTML rewrites for missing JS/CSS assets from being treated as valid
+        const contentType = networkResponse.headers.get('content-type') || '';
+        const isAsset = url.pathname.startsWith('/assets/') || url.pathname.endsWith('.js') || url.pathname.endsWith('.css');
+        
+        if (isAsset && contentType.includes('text/html')) {
+          // Missing asset fallback on Vercel returned HTML instead of JS/CSS -> Return 404
+          return new Response('Asset not found', { status: 404, statusText: 'Not Found' });
+        }
+
+        return networkResponse;
+      });
+    })
+  );
 });
