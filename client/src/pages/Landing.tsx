@@ -59,6 +59,11 @@ const Landing = () => {
             <h3>Secure Vault</h3>
             <p>Cloud-synchronized photo storage with email sharing and privacy controls.</p>
           </div>
+          <div className="feature-item">
+            <span className="feature-icon" role="img" aria-label="Rocket">🚀</span>
+            <h3>Smart Export</h3>
+            <p>Automatically resize, convert, and optimize high-res photos for web, print, or social media.</p>
+          </div>
         </div>
       </div>
     </div>
