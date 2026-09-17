@@ -43,17 +43,6 @@ Watch a walkthrough (5-7 minutes) of all major features of this age:
 
 ---
 
-## Reference
-
-![](./assets/kaviospecs.mov.gif)
----
-
-![](./assets/landpage.png)
-
----
-
-## Features
-
 ### Authentication
 
 - Google OAuth login
