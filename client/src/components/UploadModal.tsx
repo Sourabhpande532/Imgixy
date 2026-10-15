@@ -69,11 +69,23 @@ const UploadModal: React.FC<Props> = ({ albumId, refresh }) => {
 
           <div className="modal-body d-flex flex-column gap-3">
             {/* File drop area */}
-            <div className="kx-file-drop">
+            <div
+              className="kx-file-drop"
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                  setFile(e.dataTransfer.files[0]);
+                }
+              }}
+            >
               <input
                 id="file-input"
                 type="file"
                 accept="image/*"
+                onClick={(e) => {
+                  (e.target as HTMLInputElement).value = "";
+                }}
                 onChange={(e) => setFile(e.target.files?.[0] || null)}
               />
               <div className="kx-file-icon">
@@ -87,6 +99,7 @@ const UploadModal: React.FC<Props> = ({ albumId, refresh }) => {
                 <p className="kx-file-hint">Click or drag & drop an image here</p>
               )}
             </div>
+
 
             <div>
               <label className="kx-label">Tags</label>
