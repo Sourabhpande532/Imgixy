@@ -43,6 +43,11 @@ Watch a walkthrough (5-7 minutes) of all major features of this age:
 
 ---
 
+## Reference 
+![](./assets/landing.png)
+
+---
+
 ### Authentication
 
 - Google OAuth login
