@@ -131,12 +131,47 @@ const Dashboard = () => {
               <div className="kx-spinner" />
             </div>
           ) : albums.length === 0 ? (
-            <div className="kx-empty">
-              <span className="kx-empty-icon">
-                <i className="fas fa-folder-open" />
-              </span>
-              <h3>No albums yet</h3>
-              <p>Create your first album to get started</p>
+            <div className="kx-welcome-empty">
+              {/* Hero illustration */}
+              <div className="kx-welcome-hero">
+                <div className="kx-welcome-glow" />
+                <span className="kx-welcome-emoji" role="img" aria-label="Camera">📸</span>
+              </div>
+
+              <h2 className="kx-welcome-heading">Welcome to Imgixy</h2>
+              <p className="kx-welcome-sub">
+                Your personal cloud vault for photos. Create an album, upload images,
+                add tags, and share memories with anyone.
+              </p>
+
+              {/* Steps */}
+              <div className="kx-welcome-steps">
+                {[
+                  { icon: "fa-folder-plus", step: "1", label: "Create an Album", desc: "Group photos by event, date, or theme." },
+                  { icon: "fa-cloud-upload-alt", step: "2", label: "Upload Photos", desc: "Drag & drop or pick from your device." },
+                  { icon: "fa-share-alt", step: "3", label: "Share & Curate", desc: "Star favorites, filter by tag, share via email." },
+                ].map(({ icon, step, label, desc }) => (
+                  <div key={step} className="kx-welcome-step">
+                    <div className="kx-welcome-step-num">{step}</div>
+                    <div className="kx-welcome-step-icon">
+                      <i className={`fas ${icon}`} />
+                    </div>
+                    <h5 className="kx-welcome-step-label">{label}</h5>
+                    <p className="kx-welcome-step-desc">{desc}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* CTA — opens existing Create Album modal */}
+              <button
+                className="kx-welcome-cta"
+                data-bs-toggle="modal"
+                data-bs-target="#createModal"
+                aria-label="Create your first album"
+              >
+                <i className="fas fa-plus me-2" />
+                Create Your First Album
+              </button>
             </div>
           ) : filteredAlbums.length === 0 ? (
             <div className="kx-empty">

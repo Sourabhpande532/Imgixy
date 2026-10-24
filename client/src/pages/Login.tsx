@@ -23,12 +23,12 @@ function Login() {
   return (
     <div className="kx-login-page">
       <div className="kx-login-card text-center">
-        {/* Animated emoji logo */}
+        {/* Logo */}
         <span className="kx-login-emoji" role="img" aria-label="Camera">📸</span>
 
         <h1 className="kx-login-title">Imgixy</h1>
         <p className="kx-login-subtitle">
-          Store, organize &amp; relive your memories
+          Your personal cloud vault to store, curate, and relive every photo memory.
         </p>
 
         {/* Feature pills */}
@@ -51,6 +51,20 @@ function Login() {
           ))}
         </div>
 
+        {/* Divider */}
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "0.75rem",
+          margin: "0 0 1.5rem",
+          color: "var(--text-muted)",
+          fontSize: "0.78rem",
+        }}>
+          <div style={{ flex: 1, height: 1, background: "var(--glass-border)" }} />
+          Sign in to get started
+          <div style={{ flex: 1, height: 1, background: "var(--glass-border)" }} />
+        </div>
+
         <button
           id="google-login-btn"
           className="kx-google-btn"
@@ -66,7 +80,30 @@ function Login() {
           Continue with Google
         </button>
 
-        <p style={{ marginTop: "1.5rem", fontSize: "0.78rem", color: "var(--text-muted)" }}>
+        {/* Trust signals */}
+        <div style={{
+          marginTop: "1.75rem",
+          display: "flex",
+          justifyContent: "center",
+          gap: "1.25rem",
+          flexWrap: "wrap",
+        }}>
+          {[
+            { icon: "fa-lock", label: "Secure & Private" },
+            { icon: "fa-cloud", label: "Cloud Synced" },
+            { icon: "fa-tags", label: "Tag & Filter" },
+          ].map(({ icon, label }) => (
+            <span
+              key={label}
+              style={{ display: "flex", alignItems: "center", gap: "0.35rem", fontSize: "0.76rem", color: "var(--text-muted)" }}
+            >
+              <i className={`fas ${icon}`} style={{ color: "var(--accent)", fontSize: "0.7rem" }} />
+              {label}
+            </span>
+          ))}
+        </div>
+
+        <p style={{ marginTop: "1.25rem", fontSize: "0.74rem", color: "var(--text-muted)" }}>
           By continuing, you agree to our Terms &amp; Privacy Policy
         </p>
       </div>
