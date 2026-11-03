@@ -1,21 +1,25 @@
 export interface AlbumType {
-    _id: string;
-    name: string;
-    description: string;
-    ownerId: string;
-    sharedWith: string[];
-    createdAt: string;
-    updatedAt: string;
+  _id: string;
+  albumId?: string;
+  name: string;
+  description: string;
+  ownerId: string;
+  sharedWith: string[];
+  createdAt: string;
+  updatedAt: string;
 }
+
 export interface Image {
-    _id: string;
-    albumId: string;
-    name: string;
-    url: string;
-    tags: string[];
-    person?: string;
-    isFavorite: boolean;
-    comments: string[];
-    size: number;
-    uploadedAt: string;
+  _id: string;
+  imageId?: string;
+  albumId: string;
+  name: string;
+  url: string;
+  tags: string[];
+  person?: string;
+  isFavorite: boolean;
+  comments: string[];
+  size: number;
+  uploadedAt: string;
+  uploadedAT?: string;
 }

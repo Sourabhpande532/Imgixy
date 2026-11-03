@@ -1,28 +1,64 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import API from "../services/api";
 import { toast } from "react-toastify";
 import { closeModal } from "../utils/modal";
-
 
 interface Props {
   albumId: string;
   refresh: () => void;
 }
 
+const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
+const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+
+const formatFileSize = (bytes: number) => {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+};
+
 const UploadModal: React.FC<Props> = ({ albumId, refresh }) => {
   const [file, setFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [tags, setTags] = useState("");
   const [person, setPerson] = useState("");
   const [isFavorite, setIsFavorite] = useState(false);
   const [uploading, setUploading] = useState(false);
 
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
+
+  const validateAndSelectFile = (selected: File | null) => {
+    if (!selected) {
+      setFile(null);
+      setPreviewUrl(null);
+      return;
+    }
+    if (!ALLOWED_MIME_TYPES.includes(selected.type)) {
+      toast.error("Only image files (JPG, PNG, GIF, WebP) are allowed.");
+      return;
+    }
+    if (selected.size > MAX_FILE_SIZE_BYTES) {
+      toast.error("File is too large. Maximum allowed file size is 10 MB.");
+      return;
+    }
+    setFile(selected);
+    setPreviewUrl(URL.createObjectURL(selected));
+  };
+
   const handleUpload = async () => {
-    if (!file) return toast.error("Please select a file first");
+    if (!file) {
+      toast.error("Please select an image file first");
+      return;
+    }
 
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("tags", tags);
-    formData.append("person", person);
+    formData.append("tags", tags.trim());
+    formData.append("person", person.trim());
     formData.append("isFavorite", String(isFavorite));
 
     try {
@@ -31,24 +67,24 @@ const UploadModal: React.FC<Props> = ({ albumId, refresh }) => {
 
       closeModal("uploadModal");
       refresh();
-      toast.success("Photo uploaded! 🎉");
+      toast.success("Photo uploaded successfully");
       setFile(null);
+      setPreviewUrl(null);
       setTags("");
       setPerson("");
       setIsFavorite(false);
-
     } catch (err: unknown) {
-      // Show the exact server error message if available
       let message = "Upload failed, please try again";
       if (err instanceof Error) message = err.message;
       try {
-        // Axios wraps server response in err.response.data
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const axiosErr = err as any;
         if (axiosErr?.response?.data?.error) {
           message = axiosErr.response.data.error;
         }
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
       toast.error(message);
     } finally {
       setUploading(false);
@@ -56,15 +92,15 @@ const UploadModal: React.FC<Props> = ({ albumId, refresh }) => {
   };
 
   return (
-    <div className="modal fade" id="uploadModal">
+    <div className="modal fade" id="uploadModal" tabIndex={-1} aria-labelledby="uploadModalTitle" aria-hidden="true">
       <div className="modal-dialog modal-dialog-centered">
         <div className="modal-content">
           <div className="modal-header">
-            <h5 className="modal-title">
+            <h5 className="modal-title" id="uploadModalTitle">
               <i className="fas fa-cloud-upload-alt me-2" style={{ color: "var(--success)" }} />
               Upload Photo
             </h5>
-            <button type="button" className="btn-close" data-bs-dismiss="modal" />
+            <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close" />
           </div>
 
           <div className="modal-body d-flex flex-column gap-3">
@@ -75,34 +111,54 @@ const UploadModal: React.FC<Props> = ({ albumId, refresh }) => {
               onDrop={(e) => {
                 e.preventDefault();
                 if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-                  setFile(e.dataTransfer.files[0]);
+                  validateAndSelectFile(e.dataTransfer.files[0]);
                 }
               }}
             >
               <input
                 id="file-input"
                 type="file"
-                accept="image/*"
+                accept="image/jpeg,image/png,image/gif,image/webp"
                 onClick={(e) => {
                   (e.target as HTMLInputElement).value = "";
                 }}
-                onChange={(e) => setFile(e.target.files?.[0] || null)}
+                onChange={(e) => validateAndSelectFile(e.target.files?.[0] || null)}
               />
-              <div className="kx-file-icon">
-                <i className="fas fa-image" />
-              </div>
-              {file ? (
-                <p style={{ color: "var(--accent)", fontWeight: 600, fontSize: "0.85rem" }}>
-                  ✓ {file.name}
-                </p>
+              {previewUrl && file ? (
+                <div className="d-flex flex-column align-items-center gap-2">
+                  <img
+                    src={previewUrl}
+                    alt="Selected preview"
+                    style={{
+                      maxHeight: 140,
+                      maxWidth: "100%",
+                      borderRadius: 8,
+                      objectFit: "contain",
+                      border: "1px solid var(--glass-border)",
+                    }}
+                  />
+                  <p style={{ color: "var(--accent-text)", fontWeight: 600, fontSize: "0.84rem" }}>
+                    <i className="fas fa-check-circle me-1" />
+                    {file.name} ({formatFileSize(file.size)})
+                  </p>
+                </div>
               ) : (
-                <p className="kx-file-hint">Click or drag & drop an image here</p>
+                <>
+                  <div className="kx-file-icon">
+                    <i className="fas fa-image" />
+                  </div>
+                  <p className="kx-file-hint">Click or drag &amp; drop an image here</p>
+                  <p style={{ fontSize: "0.74rem", color: "var(--text-muted)", marginTop: "0.25rem" }}>
+                    Supports JPG, PNG, GIF, WebP (up to 10 MB)
+                  </p>
+                </>
               )}
             </div>
 
-
             <div>
-              <label className="kx-label">Tags</label>
+              <label htmlFor="tags-input" className="kx-label">
+                Tags (comma-separated)
+              </label>
               <input
                 id="tags-input"
                 className="kx-input"
@@ -113,11 +169,13 @@ const UploadModal: React.FC<Props> = ({ albumId, refresh }) => {
             </div>
 
             <div>
-              <label className="kx-label">Person</label>
+              <label htmlFor="person-input" className="kx-label">
+                Person in Photo
+              </label>
               <input
                 id="person-input"
                 className="kx-input"
-                placeholder="Who's in this photo?"
+                placeholder="Optional — who is in this photo?"
                 value={person}
                 onChange={(e) => setPerson(e.target.value)}
               />
@@ -125,13 +183,15 @@ const UploadModal: React.FC<Props> = ({ albumId, refresh }) => {
 
             {/* Favorite toggle */}
             <label
+              htmlFor="favorite-checkbox"
               style={{
                 display: "flex",
                 alignItems: "center",
                 gap: "0.6rem",
                 cursor: "pointer",
-                color: "var(--text)",
+                color: "var(--text-h)",
                 fontSize: "0.88rem",
+                fontWeight: 500,
               }}
             >
               <input
@@ -141,14 +201,17 @@ const UploadModal: React.FC<Props> = ({ albumId, refresh }) => {
                 onChange={(e) => setIsFavorite(e.target.checked)}
                 style={{ accentColor: "var(--accent)", width: 16, height: 16 }}
               />
-              <i className="fas fa-star me-1" style={{ color: "var(--warning)" }} />
-              Mark as Favorite
+              <i className="fas fa-star" style={{ color: "var(--warning)" }} />
+              <span>Mark as Favorite</span>
             </label>
           </div>
 
           <div className="modal-footer gap-2">
-            <button className="kx-btn-cancel" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" className="kx-btn-cancel" data-bs-dismiss="modal">
+              Cancel
+            </button>
             <button
+              type="button"
               id="upload-submit"
               className="kx-btn-success"
               onClick={handleUpload}
@@ -162,7 +225,7 @@ const UploadModal: React.FC<Props> = ({ albumId, refresh }) => {
               ) : (
                 <>
                   <i className="fas fa-upload me-1" />
-                  Upload
+                  Upload Photo
                 </>
               )}
             </button>
