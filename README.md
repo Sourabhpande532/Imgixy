@@ -6,7 +6,7 @@ Imgixy is a full-stack cloud image management system where users can securely up
 
 ## Live Demo & Walkthrough
 
-- **Live Demo:** [https://placecode.co/](https://placecode.co/)
+- **Live Demo:** [https://imgixy-1f4i.vercel.app/](https://imgixy-1f4i.vercel.app/)
 - **Walkthrough Video (5–7 mins):** [Watch on Google Drive](https://drive.google.com/file/d/1I6qPh8k2N3v797tYNQmUhBB3up818tEe/view?usp=sharing)
 
 ---
