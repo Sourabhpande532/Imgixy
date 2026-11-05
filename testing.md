@@ -336,5 +336,6 @@ Review the folder structure and file names. Note what is messy or unclear.
 - Anything outside Section 0.3. No redesign, no rewrite, no new tech stack, no endpoint changes, no authentication replacement, no database change preserve this functionality,logic and work on specified task.
 
 ---
+
 ### Execution order for the agent
 Read Section 0 fully → run the project → test everything in the browser and build the Bug Log (Phase 1) → fix in small safe steps (Phase 2) → verify after every fix → full verification (Section 7) → final report. Stop and ask whenever a change might touch a protected item.

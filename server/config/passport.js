@@ -12,18 +12,12 @@ passport.use(
       callbackURL: process.env.CALLBACK_URL,
     },
     async (_, __, profile, done) => {
-      try {
-        // Google sends user info to backend then backend creates JWT
-        const email = profile.emails?.[0]?.value;
-        if (!email) {
-          return done(new Error("No email found in Google profile"), null);
-        }
-        let user = await User.findOne({ email });
-        if (!user) user = await User.create({ email });
-        return done(null, user);
-      } catch (err) {
-        return done(err, null);
-      }
+      console.log(profile);
+      // Google sends user info to backend then backend create jwt 
+      const email = profile.emails[0].value;
+      let user = await User.findOne({ email });
+      if (!user) user = await User.create({ email });
+      return done(null, user);
     },
   ),
 );
