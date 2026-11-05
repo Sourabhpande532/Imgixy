@@ -136,8 +136,8 @@ const Dashboard = () => {
               </p>
             </div>
 
-            <div className="d-flex gap-2 align-items-center flex-wrap">
-              <div className="position-relative">
+            <div className="kx-header-controls d-flex gap-2 align-items-center flex-wrap">
+              <div className="kx-header-search-wrap">
                 <input
                   type="text"
                   className="kx-input"
@@ -145,7 +145,6 @@ const Dashboard = () => {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   aria-label="Search albums"
-                  style={{ width: "clamp(170px, 24vw, 260px)" }}
                 />
               </div>
               <button

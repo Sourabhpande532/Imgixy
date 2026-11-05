@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Image from "../models/Image.js";
 import Album from "../models/Album.js";
 import cloudinary from "../config/cloudinary.js";
@@ -37,7 +38,9 @@ const parseTags = (rawTags) => {
 
 const normalizeImage = (doc) => {
   if (!doc) return doc;
-  const obj = typeof doc.toObject === "function" ? doc.toObject() : doc;
+  const obj = typeof doc.toObject === "function" ? doc.toObject() : { ...doc };
+  delete obj.__v;
+  delete obj.public_id;
   return {
     ...obj,
     imageId: obj.imageId || obj._id,
@@ -46,30 +49,45 @@ const normalizeImage = (doc) => {
   };
 };
 
+const verifyAlbumAccess = async (albumId, user) => {
+  if (!mongoose.Types.ObjectId.isValid(albumId)) {
+    return { ok: false, status: 404, error: "Album not found." };
+  }
+  const album = await Album.findById(albumId).lean();
+  if (!album) {
+    return { ok: false, status: 404, error: "Album not found." };
+  }
+  const isOwner = album.ownerId?.toString() === user.id;
+  const isShared = (album.sharedWith || []).some(
+    (email) => email.toLowerCase() === (user.email || "").toLowerCase(),
+  );
+  if (!isOwner && !isShared) {
+    return {
+      ok: false,
+      status: 403,
+      error: "You do not have access to this album.",
+    };
+  }
+  return { ok: true, album, isOwner };
+};
+
 export const uploadImage = async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ error: "Please select an image file to upload." });
+      return res
+        .status(400)
+        .json({ error: "Please select an image file to upload." });
     }
 
     const albumId = req.params.albumId;
-    const album = await Album.findById(albumId).lean();
-    if (!album) {
-      return res.status(404).json({ error: "Album not found." });
-    }
-
-    const isOwner = album.ownerId?.toString() === req.user.id;
-    const isShared = (album.sharedWith || []).some(
-      (email) => email.toLowerCase() === (req.user.email || "").toLowerCase(),
-    );
-    if (!isOwner && !isShared) {
-      return res.status(403).json({ error: "You do not have access to this album." });
+    const access = await verifyAlbumAccess(albumId, req.user);
+    if (!access.ok) {
+      return res.status(access.status).json({ error: access.error });
     }
 
     const parsedTags = parseTags(req.body.tags);
     const isFav =
-      req.body.isFavorite === true ||
-      req.body.isFavorite === "true";
+      req.body.isFavorite === true || req.body.isFavorite === "true";
     const person =
       typeof req.body.person === "string" ? req.body.person.trim() : "";
 
@@ -111,12 +129,22 @@ export const uploadImage = async (req, res) => {
 
 export const getImages = async (req, res) => {
   try {
-    const filter = { albumId: req.params.albumId };
-    const images = await Image.find(filter).sort({ uploadedAt: -1, uploadedAT: -1 }).lean();
+    const albumId = req.params.albumId;
+    const access = await verifyAlbumAccess(albumId, req.user);
+    if (!access.ok) {
+      return res.status(access.status).json({ error: access.error });
+    }
+
+    const filter = { albumId };
+    const images = await Image.find(filter)
+      .sort({ uploadedAt: -1, uploadedAT: -1 })
+      .lean();
     let normalized = images.map(normalizeImage);
 
     if (req.query.tags) {
-      const requestedTags = parseTags(req.query.tags).map((t) => t.toLowerCase());
+      const requestedTags = parseTags(req.query.tags).map((t) =>
+        t.toLowerCase(),
+      );
       if (requestedTags.length > 0) {
         normalized = normalized.filter((img) =>
           (img.tags || []).some((tag) =>
@@ -134,8 +162,14 @@ export const getImages = async (req, res) => {
 
 export const getFavorites = async (req, res) => {
   try {
+    const albumId = req.params.albumId;
+    const access = await verifyAlbumAccess(albumId, req.user);
+    if (!access.ok) {
+      return res.status(access.status).json({ error: access.error });
+    }
+
     const images = await Image.find({
-      albumId: req.params.albumId,
+      albumId,
       isFavorite: true,
     })
       .sort({ uploadedAt: -1, uploadedAT: -1 })
@@ -148,8 +182,20 @@ export const getFavorites = async (req, res) => {
 
 export const toggleFavorite = async (req, res) => {
   try {
-    const image = await Image.findById(req.params.imageId);
+    const { imageId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(imageId)) {
+      return res.status(404).json({ error: "Image not found" });
+    }
+
+    const image = await Image.findById(imageId);
     if (!image) return res.status(404).json({ error: "Image not found" });
+
+    if (image.albumId) {
+      const access = await verifyAlbumAccess(image.albumId, req.user);
+      if (!access.ok) {
+        return res.status(access.status).json({ error: access.error });
+      }
+    }
 
     image.isFavorite =
       typeof req.body?.isFavorite === "boolean"
@@ -165,13 +211,25 @@ export const toggleFavorite = async (req, res) => {
 
 export const addComment = async (req, res) => {
   try {
+    const { imageId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(imageId)) {
+      return res.status(404).json({ error: "Image not found" });
+    }
+
     const rawComment = req.body?.comment;
     if (!rawComment || typeof rawComment !== "string" || !rawComment.trim()) {
       return res.status(400).json({ error: "Comment cannot be empty." });
     }
 
-    const image = await Image.findById(req.params.imageId);
+    const image = await Image.findById(imageId);
     if (!image) return res.status(404).json({ error: "Image not found" });
+
+    if (image.albumId) {
+      const access = await verifyAlbumAccess(image.albumId, req.user);
+      if (!access.ok) {
+        return res.status(access.status).json({ error: access.error });
+      }
+    }
 
     image.comments.push(rawComment.trim());
     await image.save();
@@ -184,7 +242,12 @@ export const addComment = async (req, res) => {
 
 export const deleteImage = async (req, res) => {
   try {
-    const image = await Image.findById(req.params.imageId);
+    const { imageId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(imageId)) {
+      return res.status(404).json({ error: "Image not found" });
+    }
+
+    const image = await Image.findById(imageId);
     if (!image) return res.status(404).json({ error: "Image not found" });
 
     // Verify ownership of the parent album (Checklist 5.4 & 7: Shared users cannot delete images)

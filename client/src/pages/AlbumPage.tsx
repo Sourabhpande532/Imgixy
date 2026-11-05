@@ -42,6 +42,7 @@ const AlbumPage = () => {
   const navigate = useNavigate();
   const [images, setImages] = useState<Image[]>([]);
   const [album, setAlbum] = useState<AlbumType | null>(null);
+  const [albumNotFound, setAlbumNotFound] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<string>("");
   const [showFavOnly, setShowFavOnly] = useState(false);
@@ -62,8 +63,15 @@ const AlbumPage = () => {
     try {
       const res = await API.get(`/images/${albumId}`);
       setImages(res.data);
-    } catch {
-      toast.error("Failed to load album images");
+      setAlbumNotFound(false);
+    } catch (err: unknown) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const status = (err as any)?.response?.status;
+      if (status === 404 || status === 403) {
+        setAlbumNotFound(true);
+      } else {
+        toast.error("Failed to load album images");
+      }
     } finally {
       setLoading(false);
     }
@@ -98,13 +106,21 @@ const AlbumPage = () => {
       .then(([imgRes, albumsRes]) => {
         if (!isMounted) return;
         setImages(imgRes.data);
+        setAlbumNotFound(false);
         const found = (albumsRes.data as AlbumType[]).find(
           (a) => a._id === albumId,
         );
         if (found) setAlbum(found);
       })
-      .catch(() => {
-        if (isMounted) toast.error("Failed to load album images");
+      .catch((err: unknown) => {
+        if (!isMounted) return;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const status = (err as any)?.response?.status;
+        if (status === 404 || status === 403) {
+          setAlbumNotFound(true);
+        } else {
+          toast.error("Failed to load album images");
+        }
       })
       .finally(() => {
         if (isMounted) setLoading(false);
@@ -251,412 +267,434 @@ const AlbumPage = () => {
             <span>Back to Workspace</span>
           </button>
 
-          {/* ── Top bar ── */}
-          <div className="kx-upload-bar">
-            <div>
-              <div className="d-flex align-items-center gap-2 flex-wrap">
-                <h2 className="kx-page-title mb-0" style={{ fontSize: "1.4rem" }}>
-                  <i
-                    className="fas fa-images me-2"
-                    style={{ color: "var(--accent)" }}
-                  />
-                  {album?.name || "Album Photos"}
-                </h2>
-                {album && (
-                  <span
-                    className={`kx-album-badge position-static ${isOwner ? "owner" : "shared"}`}
-                  >
-                    <i
-                      className={`fas ${isOwner ? "fa-crown" : "fa-user-friends"}`}
-                    />
-                    <span>{isOwner ? "Owner" : "Shared with you"}</span>
-                  </span>
-                )}
-              </div>
-
-              {album?.description && (
-                <p
-                  className="mt-1"
-                  style={{ fontSize: "0.86rem", color: "var(--text)" }}
-                >
-                  {album.description}
-                </p>
-              )}
-
-              <p
-                className="kx-page-subtitle"
-                style={{ fontSize: "0.8rem", marginTop: "0.25rem" }}
-              >
-                {filtered.length} of {images.length}{" "}
-                {images.length === 1 ? "photo" : "photos"}
-                {album?.sharedWith && album.sharedWith.length > 0
-                  ? ` • Shared with ${album.sharedWith.length} ${album.sharedWith.length === 1 ? "person" : "people"}`
-                  : ""}
-              </p>
-            </div>
-
-            <div className="d-flex align-items-center gap-2 flex-wrap">
-              {isOwner && album && (
-                <button
-                  type="button"
-                  className="kx-btn-cancel"
-                  data-bs-toggle="modal"
-                  data-bs-target="#shareModal"
-                  aria-label="Share Album"
-                >
-                  <i className="fas fa-share-alt me-1" />
-                  Share
-                </button>
-              )}
-
-              <button
-                type="button"
-                id="upload-image-btn"
-                className="kx-create-btn btn"
-                data-bs-toggle="modal"
-                data-bs-target="#uploadModal"
-                aria-label="Upload Photo"
-              >
-                <i className="fas fa-cloud-upload-alt me-2" />
-                Upload Photo
-              </button>
-            </div>
-          </div>
-
-          {/* ── Filter & Sort bar ── */}
-          <div className="kx-filter-bar">
-            {/* Favorites toggle */}
-            <button
-              type="button"
-              id="filter-fav-btn"
-              className={`kx-filter-pill ${showFavOnly ? "active" : ""}`}
-              onClick={() => setShowFavOnly((v) => !v)}
-              aria-label="Filter by favorites"
-            >
-              <i className={`${showFavOnly ? "fas" : "far"} fa-star`} />
-              <span>{showFavOnly ? "Favorites only" : "All photos"}</span>
-            </button>
-
-            {/* Tag / Name / Person search input */}
-            <div className="kx-filter-search">
-              <i className="fas fa-search" />
-              <input
-                id="tag-filter-input"
-                type="text"
-                placeholder="Search by tag, person, or name…"
-                value={tagFilter}
-                onChange={(e) => setTagFilter(e.target.value)}
-                aria-label="Filter photos by tag, person, or name"
-              />
-              {tagFilter && (
-                <button
-                  type="button"
-                  className="kx-filter-clear"
-                  onClick={() => setTagFilter("")}
-                  aria-label="Clear filter"
-                >
-                  <i className="fas fa-times" />
-                </button>
-              )}
-            </div>
-
-            {/* Sort selector */}
-            <div className="d-flex align-items-center gap-2 ms-md-auto">
-              <label
-                htmlFor="photo-sort-select"
-                style={{
-                  fontSize: "0.78rem",
-                  color: "var(--text-muted)",
-                  fontWeight: 600,
-                  whiteSpace: "nowrap",
-                }}
-              >
-                Sort:
-              </label>
-              <select
-                id="photo-sort-select"
-                className="kx-select"
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as SortOption)}
-                aria-label="Sort photos"
-                style={{
-                  width: "auto",
-                  padding: "0.35rem 0.75rem",
-                  fontSize: "0.8rem",
-                  borderRadius: "99px",
-                }}
-              >
-                <option value="newest">Newest First</option>
-                <option value="oldest">Oldest First</option>
-                <option value="name">Name (A–Z)</option>
-                <option value="size">File Size</option>
-              </select>
-            </div>
-
-            {/* Quick-select tag chips */}
-            {allTags.length > 0 && (
-              <div className="kx-tag-chips w-100 pt-1">
-                {allTags.map((t) => (
-                  <button
-                    type="button"
-                    key={t}
-                    className={`kx-tag-chip ${tagFilter.toLowerCase() === t.toLowerCase() ? "active" : ""}`}
-                    onClick={() =>
-                      setTagFilter(
-                        tagFilter.toLowerCase() === t.toLowerCase() ? "" : t,
-                      )
-                    }
-                    aria-label={`Tag #${t}`}
-                  >
-                    #{t}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* ── Modals ── */}
-          <UploadModal albumId={albumId!} refresh={fetchImages} />
-          <CommentModal imageId={selected} refresh={fetchImages} />
-          {album && (
-            <ShareModal
-              albumId={album._id}
-              album={album}
-              refresh={fetchAlbumDetails}
-            />
-          )}
-
-          {/* ── Image grid ── */}
-          {loading ? (
-            <div className="kx-spinner-wrap">
-              <div className="kx-spinner" />
-            </div>
-          ) : images.length === 0 ? (
+          {albumNotFound ? (
             <div className="kx-empty">
               <span className="kx-empty-icon">
-                <i className="fas fa-photo-video" />
+                <i className="fas fa-folder-minus" />
               </span>
-              <h3>No photos yet</h3>
+              <h3>Album not found or unavailable</h3>
               <p className="mb-4">
-                Upload your first photo to start building this collection.
+                This album may have been deleted or you may not have permission to view it.
               </p>
               <button
                 type="button"
                 className="kx-create-btn btn"
-                data-bs-toggle="modal"
-                data-bs-target="#uploadModal"
+                onClick={() => navigate("/dashboard")}
               >
-                <i className="fas fa-cloud-upload-alt me-2" />
-                Upload First Photo
-              </button>
-            </div>
-          ) : filtered.length === 0 ? (
-            <div className="kx-empty">
-              <span className="kx-empty-icon">
-                <i className="fas fa-filter" />
-              </span>
-              <h3>No photos match your filter</h3>
-              <p className="mb-3">
-                Try a different tag or turn off the favorites filter.
-              </p>
-              <button
-                type="button"
-                className="kx-btn-cancel"
-                onClick={() => {
-                  setTagFilter("");
-                  setShowFavOnly(false);
-                }}
-              >
-                Reset Filters
+                <i className="fas fa-arrow-left me-2" />
+                Return to Workspace
               </button>
             </div>
           ) : (
-            <div className="row g-3">
-              {filtered.map((img, i) => {
-                const cardTags = (img.tags || [])
-                  .flatMap((t) => String(t).split(","))
-                  .map((t) => t.trim())
-                  .filter(Boolean);
-
-                return (
-                  <div
-                    className="col-12 col-sm-6 col-md-4 col-lg-3 d-flex"
-                    key={img._id}
-                    style={{ animationDelay: `${i * 0.03}s` }}
-                  >
-                    <div
-                      className="kx-img-card w-100 d-flex flex-column"
-                      style={{ height: "100%" }}
-                    >
-                      <div
-                        className="kx-img-thumb-wrap"
-                        onClick={() => setLightboxIndex(i)}
-                        role="button"
-                        tabIndex={0}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
-                            e.preventDefault();
-                            setLightboxIndex(i);
-                          }
-                        }}
-                        aria-label={`View ${img.name || "photo"} full screen`}
+            <>
+              {/* ── Top bar ── */}
+              <div className="kx-upload-bar">
+                <div>
+                  <div className="d-flex align-items-center gap-2 flex-wrap">
+                    <h2 className="kx-page-title mb-0" style={{ fontSize: "1.4rem" }}>
+                      <i
+                        className="fas fa-images me-2"
+                        style={{ color: "var(--accent)" }}
+                      />
+                      {album?.name || "Album Photos"}
+                    </h2>
+                    {album && (
+                      <span
+                        className={`kx-album-badge position-static ${isOwner ? "owner" : "shared"}`}
                       >
-                        <img
-                          src={getOptimizedImageUrl(img.url)}
-                          alt={img.name || img.person || "Photo thumbnail"}
-                          loading="lazy"
+                        <i
+                          className={`fas ${isOwner ? "fa-crown" : "fa-user-friends"}`}
                         />
-
-                        {/* Delete overlay button (Owner only per Checklist Section 7) */}
-                        {isOwner && (
-                          <button
-                            type="button"
-                            id={`delete-img-${img._id}`}
-                            className="kx-img-del-btn"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              deleteImage(img._id);
-                            }}
-                            title="Delete photo"
-                            aria-label={`Delete ${img.name || "photo"}`}
-                          >
-                            <i className="fas fa-trash-alt" />
-                          </button>
-                        )}
-
-                        {img.isFavorite && (
-                          <span className="kx-img-fav-badge">
-                            <i className="fas fa-star" />
-                            <span>Starred</span>
-                          </span>
-                        )}
-
-                        <span className="kx-img-zoom-hint" aria-hidden="true">
-                          <i className="fas fa-expand" />
-                        </span>
-                      </div>
-
-                      <div className="kx-img-body">
-                        {/* File name & size */}
-                        <div className="kx-img-title-row">
-                          <span
-                            className="kx-img-filename"
-                            title={img.name || "Untitled photo"}
-                          >
-                            {img.name || "Untitled photo"}
-                          </span>
-                          {img.size > 0 && (
-                            <span className="kx-img-meta">
-                              {formatFileSize(img.size)}
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Tags */}
-                        {cardTags.length > 0 && (
-                          <div className="mb-1">
-                            {cardTags.map((t) => (
-                              <span
-                                className="kx-img-tag"
-                                key={t}
-                                style={{ cursor: "pointer" }}
-                                onClick={() => setTagFilter(t)}
-                                title={`Filter by #${t}`}
-                              >
-                                #{t}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-
-                        {/* Person & Upload Date */}
-                        <div className="d-flex align-items-center justify-content-between flex-wrap gap-1 my-1">
-                          {img.person ? (
-                            <p className="kx-img-person my-0">
-                              <i
-                                className="fas fa-user me-1"
-                                style={{ color: "var(--accent)" }}
-                              />
-                              {img.person}
-                            </p>
-                          ) : (
-                            <span />
-                          )}
-                          {(img.uploadedAt || img.uploadedAT) && (
-                            <span className="kx-img-meta">
-                              {formatDate(img.uploadedAt || img.uploadedAT)}
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Action buttons */}
-                        <div className="kx-img-actions">
-                          <button
-                            type="button"
-                            id={`fav-${img._id}`}
-                            className={`kx-btn-fav ${img.isFavorite ? "active" : ""}`}
-                            onClick={() => toggleFav(img)}
-                            aria-label={
-                              img.isFavorite ? "Unstar photo" : "Star photo"
-                            }
-                          >
-                            <i
-                              className={`${img.isFavorite ? "fas" : "far"} fa-star`}
-                            />
-                            <span>{img.isFavorite ? "Starred" : "Star"}</span>
-                          </button>
-
-                          <button
-                            type="button"
-                            id={`comment-${img._id}`}
-                            className="kx-btn-comment"
-                            data-bs-toggle="modal"
-                            data-bs-target="#commentModal"
-                            onClick={() => setSelected(img._id)}
-                            aria-label="Add comment to photo"
-                          >
-                            <i className="far fa-comment" />
-                            <span>
-                              {img.comments?.length > 0
-                                ? `${img.comments.length} `
-                                : ""}
-                              Comment
-                            </span>
-                          </button>
-                        </div>
-
-                        {/* ── Persisted comments ── */}
-                        {img.comments?.length > 0 && (
-                          <div className="kx-comments-section">
-                            <p className="kx-comments-label">
-                              <i className="fas fa-comments me-1" />
-                              {img.comments.length}{" "}
-                              {img.comments.length === 1
-                                ? "comment"
-                                : "comments"}
-                            </p>
-                            <ul className="kx-comments-list">
-                              {img.comments.map((c, idx) => (
-                                <li key={idx} className="kx-comment-item">
-                                  <i
-                                    className="fas fa-circle-user me-1"
-                                    style={{
-                                      color: "var(--accent)",
-                                      fontSize: "0.75rem",
-                                    }}
-                                  />
-                                  {c}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                        <span>{isOwner ? "Owner" : "Shared with you"}</span>
+                      </span>
+                    )}
                   </div>
-                );
-              })}
-            </div>
+
+                  {album?.description && (
+                    <p
+                      className="mt-1"
+                      style={{ fontSize: "0.86rem", color: "var(--text)" }}
+                    >
+                      {album.description}
+                    </p>
+                  )}
+
+                  <p
+                    className="kx-page-subtitle"
+                    style={{ fontSize: "0.8rem", marginTop: "0.25rem" }}
+                  >
+                    {filtered.length} of {images.length}{" "}
+                    {images.length === 1 ? "photo" : "photos"}
+                    {album?.sharedWith && album.sharedWith.length > 0
+                      ? ` • Shared with ${album.sharedWith.length} ${album.sharedWith.length === 1 ? "person" : "people"}`
+                      : ""}
+                  </p>
+                </div>
+
+                <div className="d-flex align-items-center gap-2 flex-wrap">
+                  {isOwner && album && (
+                    <button
+                      type="button"
+                      className="kx-btn-cancel"
+                      data-bs-toggle="modal"
+                      data-bs-target="#shareModal"
+                      aria-label="Share Album"
+                    >
+                      <i className="fas fa-share-alt me-1" />
+                      Share
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    id="upload-image-btn"
+                    className="kx-create-btn btn"
+                    data-bs-toggle="modal"
+                    data-bs-target="#uploadModal"
+                    aria-label="Upload Photo"
+                  >
+                    <i className="fas fa-cloud-upload-alt me-2" />
+                    Upload Photo
+                  </button>
+                </div>
+              </div>
+
+              {/* ── Filter & Sort bar ── */}
+              <div className="kx-filter-bar">
+                {/* Favorites toggle */}
+                <button
+                  type="button"
+                  id="filter-fav-btn"
+                  className={`kx-filter-pill ${showFavOnly ? "active" : ""}`}
+                  onClick={() => setShowFavOnly((v) => !v)}
+                  aria-label="Filter by favorites"
+                >
+                  <i className={`${showFavOnly ? "fas" : "far"} fa-star`} />
+                  <span>{showFavOnly ? "Favorites only" : "All photos"}</span>
+                </button>
+
+                {/* Tag / Name / Person search input */}
+                <div className="kx-filter-search">
+                  <i className="fas fa-search" />
+                  <input
+                    id="tag-filter-input"
+                    type="text"
+                    placeholder="Search by tag, person, or name…"
+                    value={tagFilter}
+                    onChange={(e) => setTagFilter(e.target.value)}
+                    aria-label="Filter photos by tag, person, or name"
+                  />
+                  {tagFilter && (
+                    <button
+                      type="button"
+                      className="kx-filter-clear"
+                      onClick={() => setTagFilter("")}
+                      aria-label="Clear filter"
+                    >
+                      <i className="fas fa-times" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Sort selector */}
+                <div className="d-flex align-items-center gap-2 ms-md-auto">
+                  <label
+                    htmlFor="photo-sort-select"
+                    style={{
+                      fontSize: "0.78rem",
+                      color: "var(--text-muted)",
+                      fontWeight: 600,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    Sort:
+                  </label>
+                  <select
+                    id="photo-sort-select"
+                    className="kx-select"
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as SortOption)}
+                    aria-label="Sort photos"
+                    style={{
+                      width: "auto",
+                      padding: "0.35rem 0.75rem",
+                      fontSize: "0.8rem",
+                      borderRadius: "99px",
+                    }}
+                  >
+                    <option value="newest">Newest First</option>
+                    <option value="oldest">Oldest First</option>
+                    <option value="name">Name (A–Z)</option>
+                    <option value="size">File Size</option>
+                  </select>
+                </div>
+
+                {/* Quick-select tag chips */}
+                {allTags.length > 0 && (
+                  <div className="kx-tag-chips w-100 pt-1">
+                    {allTags.map((t) => (
+                      <button
+                        type="button"
+                        key={t}
+                        className={`kx-tag-chip ${tagFilter.toLowerCase() === t.toLowerCase() ? "active" : ""}`}
+                        onClick={() =>
+                          setTagFilter(
+                            tagFilter.toLowerCase() === t.toLowerCase() ? "" : t,
+                          )
+                        }
+                        aria-label={`Tag #${t}`}
+                      >
+                        #{t}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* ── Modals ── */}
+              <UploadModal albumId={albumId!} refresh={fetchImages} />
+              <CommentModal imageId={selected} refresh={fetchImages} />
+              {album && (
+                <ShareModal
+                  albumId={album._id}
+                  album={album}
+                  refresh={fetchAlbumDetails}
+                />
+              )}
+
+              {/* ── Image grid ── */}
+              {loading ? (
+                <div className="kx-spinner-wrap">
+                  <div className="kx-spinner" />
+                </div>
+              ) : images.length === 0 ? (
+                <div className="kx-empty">
+                  <span className="kx-empty-icon">
+                    <i className="fas fa-photo-video" />
+                  </span>
+                  <h3>No photos yet</h3>
+                  <p className="mb-4">
+                    Upload your first photo to start building this collection.
+                  </p>
+                  <button
+                    type="button"
+                    className="kx-create-btn btn"
+                    data-bs-toggle="modal"
+                    data-bs-target="#uploadModal"
+                  >
+                    <i className="fas fa-cloud-upload-alt me-2" />
+                    Upload First Photo
+                  </button>
+                </div>
+              ) : filtered.length === 0 ? (
+                <div className="kx-empty">
+                  <span className="kx-empty-icon">
+                    <i className="fas fa-filter" />
+                  </span>
+                  <h3>No photos match your filter</h3>
+                  <p className="mb-3">
+                    Try a different tag or turn off the favorites filter.
+                  </p>
+                  <button
+                    type="button"
+                    className="kx-btn-cancel"
+                    onClick={() => {
+                      setTagFilter("");
+                      setShowFavOnly(false);
+                    }}
+                  >
+                    Reset Filters
+                  </button>
+                </div>
+              ) : (
+                <div className="row g-3">
+                  {filtered.map((img, i) => {
+                    const cardTags = (img.tags || [])
+                      .flatMap((t) => String(t).split(","))
+                      .map((t) => t.trim())
+                      .filter(Boolean);
+
+                    return (
+                      <div
+                        className="col-12 col-sm-6 col-md-4 col-lg-3 d-flex"
+                        key={img._id}
+                        style={{ animationDelay: `${i * 0.03}s` }}
+                      >
+                        <div
+                          className="kx-img-card w-100 d-flex flex-column"
+                          style={{ height: "100%" }}
+                        >
+                          <div
+                            className="kx-img-thumb-wrap"
+                            onClick={() => setLightboxIndex(i)}
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                setLightboxIndex(i);
+                              }
+                            }}
+                            aria-label={`View ${img.name || "photo"} full screen`}
+                          >
+                            <img
+                              src={getOptimizedImageUrl(img.url)}
+                              alt={img.name || img.person || "Photo thumbnail"}
+                              loading="lazy"
+                            />
+
+                            {/* Delete overlay button (Owner only per Checklist Section 7) */}
+                            {isOwner && (
+                              <button
+                                type="button"
+                                id={`delete-img-${img._id}`}
+                                className="kx-img-del-btn"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  deleteImage(img._id);
+                                }}
+                                title="Delete photo"
+                                aria-label={`Delete ${img.name || "photo"}`}
+                              >
+                                <i className="fas fa-trash-alt" />
+                              </button>
+                            )}
+
+                            {img.isFavorite && (
+                              <span className="kx-img-fav-badge">
+                                <i className="fas fa-star" />
+                                <span>Starred</span>
+                              </span>
+                            )}
+
+                            <span className="kx-img-zoom-hint" aria-hidden="true">
+                              <i className="fas fa-expand" />
+                            </span>
+                          </div>
+
+                          <div className="kx-img-body">
+                            {/* File name & size */}
+                            <div className="kx-img-title-row">
+                              <span
+                                className="kx-img-filename"
+                                title={img.name || "Untitled photo"}
+                              >
+                                {img.name || "Untitled photo"}
+                              </span>
+                              {img.size > 0 && (
+                                <span className="kx-img-meta">
+                                  {formatFileSize(img.size)}
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Tags */}
+                            {cardTags.length > 0 && (
+                              <div className="mb-1">
+                                {cardTags.map((t) => (
+                                  <span
+                                    className="kx-img-tag"
+                                    key={t}
+                                    style={{ cursor: "pointer" }}
+                                    onClick={() => setTagFilter(t)}
+                                    title={`Filter by #${t}`}
+                                  >
+                                    #{t}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+
+                            {/* Person & Upload Date */}
+                            <div className="d-flex align-items-center justify-content-between flex-wrap gap-1 my-1">
+                              {img.person ? (
+                                <p className="kx-img-person my-0">
+                                  <i
+                                    className="fas fa-user me-1"
+                                    style={{ color: "var(--accent)" }}
+                                  />
+                                  {img.person}
+                                </p>
+                              ) : (
+                                <span />
+                              )}
+                              {(img.uploadedAt || img.uploadedAT) && (
+                                <span className="kx-img-meta">
+                                  {formatDate(img.uploadedAt || img.uploadedAT)}
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Action buttons */}
+                            <div className="kx-img-actions">
+                              <button
+                                type="button"
+                                id={`fav-${img._id}`}
+                                className={`kx-btn-fav ${img.isFavorite ? "active" : ""}`}
+                                onClick={() => toggleFav(img)}
+                                aria-label={
+                                  img.isFavorite ? "Unstar photo" : "Star photo"
+                                }
+                              >
+                                <i
+                                  className={`${img.isFavorite ? "fas" : "far"} fa-star`}
+                                />
+                                <span>{img.isFavorite ? "Starred" : "Star"}</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                id={`comment-${img._id}`}
+                                className="kx-btn-comment"
+                                data-bs-toggle="modal"
+                                data-bs-target="#commentModal"
+                                onClick={() => setSelected(img._id)}
+                                aria-label="Add comment to photo"
+                              >
+                                <i className="far fa-comment" />
+                                <span>
+                                  {img.comments?.length > 0
+                                    ? `${img.comments.length} `
+                                    : ""}
+                                  Comment
+                                </span>
+                              </button>
+                            </div>
+
+                            {/* ── Persisted comments ── */}
+                            {img.comments?.length > 0 && (
+                              <div className="kx-comments-section">
+                                <p className="kx-comments-label">
+                                  <i className="fas fa-comments me-1" />
+                                  {img.comments.length}{" "}
+                                  {img.comments.length === 1
+                                    ? "comment"
+                                    : "comments"}
+                                </p>
+                                <ul className="kx-comments-list">
+                                  {img.comments.map((c, idx) => (
+                                    <li key={idx} className="kx-comment-item">
+                                      <i
+                                        className="fas fa-circle-user me-1"
+                                        style={{
+                                          color: "var(--accent)",
+                                          fontSize: "0.75rem",
+                                        }}
+                                      />
+                                      {c}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

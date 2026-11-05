@@ -11,6 +11,7 @@ function Login() {
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
     localStorage.setItem("imgixy_theme", theme);
+    window.dispatchEvent(new CustomEvent("imgixy-theme-change", { detail: theme }));
   }, [theme]);
 
   useEffect(() => {

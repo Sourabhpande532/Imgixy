@@ -55,7 +55,8 @@ function buildFallbackPlan(photoStyle, albumTheme, count) {
 
   return {
     destination: `${photoStyle} ${albumTheme} — Curated Visual Series`,
-    best_time: "Golden Hour / Blue Hour with 35mm or 50mm prime lens (f/1.8, ISO 200)",
+    best_time:
+      "Golden Hour / Blue Hour with 35mm or 50mm prime lens (f/1.8, ISO 200)",
     duration_days: slots,
     top_attractions: [
       "Leading Lines & Depth Layering",
@@ -96,20 +97,15 @@ const sendSSE = (res, event, data) => {
   res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
 };
 
-const setupSSEHeaders = (req, res) => {
-  const allowedOrigin = process.env.FRONTEND_URL || req.headers.origin;
+const setupSSEHeaders = (res) => {
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
-  if (allowedOrigin) {
-    res.setHeader("Access-Control-Allow-Origin", allowedOrigin);
-  }
-  res.setHeader("Access-Control-Allow-Credentials", "true");
   res.flushHeaders();
 };
 
 const handlePlanStream = async (req, res, city, country, days) => {
-  setupSSEHeaders(req, res);
+  setupSSEHeaders(res);
 
   const style = city || "Cinematic";
   const theme = country || "Neon Cityscape";

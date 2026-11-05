@@ -371,6 +371,10 @@ a:hover { color: var(--accent-hover); }
 }
 .kx-page-subtitle { color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem; }
 
+.kx-header-search-wrap {
+  width: clamp(180px, 24vw, 260px);
+}
+
 /* Workspace Stats & Tabs */
 .kx-workspace-bar {
   display: flex;
@@ -520,7 +524,7 @@ a:hover { color: var(--accent-hover); }
   gap: 0.28rem;
 }
 
-.kx-album-body { padding: 1.15rem; flex: 1; display: flex; flex-direction: column; }
+.kx-album-body { padding: 1.15rem; flex: 1; display: flex; flex-direction: column; min-width: 0; }
 .kx-album-name {
   font-family: var(--font-heading);
   font-size: 1.05rem;
@@ -540,6 +544,8 @@ a:hover { color: var(--accent-hover); }
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  overflow-wrap: anywhere;
+  word-break: break-word;
   line-height: 1.45;
 }
 .kx-album-actions { display: flex; flex-direction: column; gap: 0.5rem; }
@@ -666,6 +672,7 @@ a:hover { color: var(--accent-hover); }
   display: flex;
   flex-direction: column;
   flex: 1;
+  min-width: 0;
 }
 .kx-img-title-row {
   display: flex;
@@ -1130,6 +1137,7 @@ a:hover { color: var(--accent-hover); }
   border-radius: var(--radius-sm);
   padding: 0.35rem 0.6rem;
   line-height: 1.4;
+  overflow-wrap: anywhere;
   word-break: break-word;
 }
 
@@ -1208,7 +1216,7 @@ a:hover { color: var(--accent-hover); }
   background: var(--bg-elevated);
 }
 
-/* ─── Responsive Breakpoints (320px to 1536px) ─────── */
+/* ─── Responsive Breakpoints (320px to 1920px & Landscape) ─── */
 @media (max-width: 991px) {
   .kx-lightbox-dialog {
     grid-template-columns: 1fr;
@@ -1216,8 +1224,8 @@ a:hover { color: var(--accent-hover); }
     overflow-y: auto;
   }
   .kx-lightbox-stage {
-    min-height: 260px;
-    max-height: 52vh;
+    min-height: 240px;
+    max-height: 50vh;
   }
   .kx-lightbox-sidebar {
     max-height: none;
@@ -1228,11 +1236,22 @@ a:hover { color: var(--accent-hover); }
 
 @media (max-width: 576px) {
   .kx-page { padding: 1.35rem 0 3.5rem; }
-  .kx-page-title { font-size: 1.4rem; }
-  .kx-login-card { padding: 2rem 1.35rem; }
+  .kx-page-title { font-size: 1.35rem; }
+  .kx-login-card { padding: 2rem 1.25rem; }
+  .kx-header-controls { width: 100%; }
+  .kx-header-search-wrap { flex: 1 1 100%; width: 100%; }
+  .kx-header-controls .kx-create-btn { width: 100%; }
   .kx-upload-bar { flex-direction: column; align-items: stretch; padding: 1rem; }
   .kx-filter-bar { flex-direction: column; align-items: stretch; padding: 0.85rem; }
   .kx-filter-search { max-width: 100%; width: 100%; }
   .kx-workspace-bar { flex-direction: column; align-items: stretch; }
   .kx-user-pill { display: none; }
+}
+
+@media (max-height: 520px) and (orientation: landscape) {
+  .kx-login-page { padding: 0.75rem; }
+  .kx-login-card { padding: 1.5rem; }
+  .kx-lightbox-backdrop { padding: 0.5rem; }
+  .kx-lightbox-dialog { max-height: 96vh; }
+  .kx-lightbox-stage { min-height: 180px; max-height: 45vh; }
 }
