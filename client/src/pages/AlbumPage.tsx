@@ -528,9 +528,10 @@ const AlbumPage = () => {
                           <div
                             className="kx-img-thumb-wrap"
                             style={{
-                              height: "185px",
-                              minHeight: "185px",
-                              maxHeight: "185px",
+                              height: "200px",
+                              minHeight: "200px",
+                              maxHeight: "200px",
+                              padding: "0.5rem",
                               overflow: "hidden",
                             }}
                             onClick={() => setLightboxIndex(i)}
@@ -551,7 +552,7 @@ const AlbumPage = () => {
                               style={{
                                 width: "100%",
                                 height: "100%",
-                                objectFit: "cover",
+                                objectFit: "contain",
                                 objectPosition: "center",
                                 display: "block",
                               }}

@@ -135,7 +135,9 @@ const UploadModal: React.FC<Props> = ({ albumId, refresh }) => {
                       height: 56,
                       minWidth: 56,
                       borderRadius: 10,
-                      objectFit: "cover",
+                      objectFit: "contain",
+                      background: "var(--bg-2)",
+                      padding: 2,
                       border: "1px solid var(--glass-border)",
                       display: "block",
                     }}
