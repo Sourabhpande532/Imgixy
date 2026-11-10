@@ -527,6 +527,12 @@ const AlbumPage = () => {
                         >
                           <div
                             className="kx-img-thumb-wrap"
+                            style={{
+                              height: "185px",
+                              minHeight: "185px",
+                              maxHeight: "185px",
+                              overflow: "hidden",
+                            }}
                             onClick={() => setLightboxIndex(i)}
                             role="button"
                             tabIndex={0}
@@ -542,6 +548,13 @@ const AlbumPage = () => {
                               src={getOptimizedImageUrl(img.url)}
                               alt={img.name || img.person || "Photo thumbnail"}
                               loading="lazy"
+                              style={{
+                                width: "100%",
+                                height: "100%",
+                                objectFit: "cover",
+                                objectPosition: "center",
+                                display: "block",
+                              }}
                             />
 
                             {/* Delete overlay button (Owner only per Checklist Section 7) */}
@@ -562,39 +575,19 @@ const AlbumPage = () => {
                             )}
 
                             {img.isFavorite && (
-                              <span className="kx-img-fav-badge">
+                              <span className="kx-img-fav-badge" title="Favorite photo">
                                 <i className="fas fa-star" />
-                                <span>Starred</span>
                               </span>
                             )}
-
-                            <span className="kx-img-zoom-hint" aria-hidden="true">
-                              <i className="fas fa-expand" />
-                            </span>
                           </div>
 
                           <div className="kx-img-body">
-                            {/* File name & size */}
-                            <div className="kx-img-title-row">
-                              <span
-                                className="kx-img-filename"
-                                title={img.name || "Untitled photo"}
-                              >
-                                {img.name || "Untitled photo"}
-                              </span>
-                              {img.size > 0 && (
-                                <span className="kx-img-meta">
-                                  {formatFileSize(img.size)}
-                                </span>
-                              )}
-                            </div>
-
                             {/* Tags */}
                             {cardTags.length > 0 && (
-                              <div className="mb-1">
+                              <div className="d-flex flex-wrap gap-1 mb-2">
                                 {cardTags.map((t) => (
                                   <span
-                                    className="kx-img-tag"
+                                    className="kx-img-tag m-0"
                                     key={t}
                                     style={{ cursor: "pointer" }}
                                     onClick={() => setTagFilter(t)}
@@ -606,25 +599,19 @@ const AlbumPage = () => {
                               </div>
                             )}
 
-                            {/* Person & Upload Date */}
-                            <div className="d-flex align-items-center justify-content-between flex-wrap gap-1 my-1">
-                              {img.person ? (
-                                <p className="kx-img-person my-0">
-                                  <i
-                                    className="fas fa-user me-1"
-                                    style={{ color: "var(--accent)" }}
-                                  />
-                                  {img.person}
-                                </p>
-                              ) : (
-                                <span />
-                              )}
-                              {(img.uploadedAt || img.uploadedAT) && (
-                                <span className="kx-img-meta">
-                                  {formatDate(img.uploadedAt || img.uploadedAT)}
-                                </span>
-                              )}
-                            </div>
+                            {/* Person */}
+                            {img.person && (
+                              <p
+                                className="kx-img-person text-truncate mt-0 mb-2"
+                                title={img.person}
+                              >
+                                <i
+                                  className="fas fa-user me-1"
+                                  style={{ color: "var(--accent)" }}
+                                />
+                                {img.person}
+                              </p>
+                            )}
 
                             {/* Action buttons */}
                             <div className="kx-img-actions">

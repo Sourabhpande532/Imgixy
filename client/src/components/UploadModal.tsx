@@ -66,13 +66,13 @@ const UploadModal: React.FC<Props> = ({ albumId, refresh }) => {
       await API.post(`/images/${albumId}`, formData);
 
       closeModal("uploadModal");
-      refresh();
-      toast.success("Photo uploaded successfully");
       setFile(null);
       setPreviewUrl(null);
       setTags("");
       setPerson("");
       setIsFavorite(false);
+      toast.success("Photo uploaded");
+      refresh();
     } catch (err: unknown) {
       let message = "Upload failed, please try again";
       if (err instanceof Error) message = err.message;
@@ -107,6 +107,7 @@ const UploadModal: React.FC<Props> = ({ albumId, refresh }) => {
             {/* File drop area */}
             <div
               className="kx-file-drop"
+              style={previewUrl && file ? { padding: "0.9rem 1rem" } : undefined}
               onDragOver={(e) => e.preventDefault()}
               onDrop={(e) => {
                 e.preventDefault();
@@ -125,22 +126,33 @@ const UploadModal: React.FC<Props> = ({ albumId, refresh }) => {
                 onChange={(e) => validateAndSelectFile(e.target.files?.[0] || null)}
               />
               {previewUrl && file ? (
-                <div className="d-flex flex-column align-items-center gap-2">
+                <div className="d-flex align-items-center gap-3 text-start">
                   <img
                     src={previewUrl}
                     alt="Selected preview"
                     style={{
-                      maxHeight: 140,
-                      maxWidth: "100%",
-                      borderRadius: 8,
-                      objectFit: "contain",
+                      width: 56,
+                      height: 56,
+                      minWidth: 56,
+                      borderRadius: 10,
+                      objectFit: "cover",
                       border: "1px solid var(--glass-border)",
+                      display: "block",
                     }}
                   />
-                  <p style={{ color: "var(--accent-text)", fontWeight: 600, fontSize: "0.84rem" }}>
-                    <i className="fas fa-check-circle me-1" />
-                    {file.name} ({formatFileSize(file.size)})
-                  </p>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <p
+                      className="text-truncate mb-1"
+                      style={{ color: "var(--text-h)", fontWeight: 600, fontSize: "0.85rem" }}
+                      title={file.name}
+                    >
+                      <i className="fas fa-check-circle me-1" style={{ color: "var(--success)" }} />
+                      {file.name}
+                    </p>
+                    <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", margin: 0 }}>
+                      {formatFileSize(file.size)} • Click to replace image
+                    </p>
+                  </div>
                 </div>
               ) : (
                 <>

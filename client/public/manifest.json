@@ -3,7 +3,7 @@
   "name": "Imgixy — Digital Photo Vault",
   "icons": [
     {
-      "src": "/favicon.svg",
+      "src": "/favicon.svg?v=3",
       "type": "image/svg+xml",
       "sizes": "any",
       "purpose": "any"
