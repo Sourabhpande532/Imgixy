@@ -6,7 +6,7 @@ import CommentModal from "../components/CommentModal";
 import ShareModal from "../components/ShareModal";
 import type { Image, AlbumType } from "../types";
 import UploadModal from "../components/UploadModal";
-import { toast } from "react-toastify";
+import { toast } from "../utils/toast";
 
 // Helper for dynamic Cloudinary image format & size optimization
 const getOptimizedImageUrl = (url: string) => {
@@ -146,8 +146,9 @@ const AlbumPage = () => {
     if (!window.confirm("Delete this photo? This cannot be undone.")) return;
     try {
       await API.delete(`/images/${imgId}`);
-      toast.success("Photo deleted");
+      setImages((prev) => prev.filter((i) => i._id !== imgId));
       setLightboxIndex(null);
+      toast.success("Photo deleted");
       fetchImages();
     } catch (err: unknown) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

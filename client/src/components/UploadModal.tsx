@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import API from "../services/api";
-import { toast } from "react-toastify";
+import { toast } from "../utils/toast";
 import { closeModal } from "../utils/modal";
 
 interface Props {

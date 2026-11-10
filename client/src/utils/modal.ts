@@ -1,30 +1,54 @@
 import { Modal } from "bootstrap";
 
+if (typeof document !== "undefined") {
+  document.addEventListener("hide.bs.modal", () => {
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+  });
+}
+
 /**
  * Safely closes a Bootstrap modal by ID and ensures body scrolling & backdrops
- * are completely restored without leaving lingering `overflow: hidden` on `document.body`.
+ * are completely restored without leaving lingering `overflow: hidden` on `document.body`
+ * or triggering `aria-hidden` focus retention warnings in the browser console.
  */
 export const closeModal = (modalId: string) => {
   const modalEl = document.getElementById(modalId);
   if (!modalEl) return;
 
-  const instance = Modal.getInstance(modalEl) || Modal.getOrCreateInstance(modalEl);
+  if (document.activeElement instanceof HTMLElement) {
+    document.activeElement.blur();
+  }
 
-  const cleanup = () => {
-    modalEl.removeEventListener("hidden.bs.modal", cleanup);
-    if (!document.querySelector(".modal.show")) {
-      document.body.classList.remove("modal-open");
-      document.body.style.removeProperty("overflow");
-      document.body.style.removeProperty("padding-right");
-      document.querySelectorAll(".modal-backdrop").forEach((el) => el.remove());
-    }
+  const forceCleanup = () => {
+    modalEl.classList.remove("show");
+    modalEl.style.display = "none";
+    modalEl.setAttribute("aria-hidden", "true");
+    modalEl.removeAttribute("aria-modal");
+    modalEl.removeAttribute("role");
+
+    document.querySelectorAll(".modal-backdrop").forEach((el) => el.remove());
+    document.body.classList.remove("modal-open");
+    document.body.style.removeProperty("overflow");
+    document.body.style.removeProperty("padding-right");
   };
 
-  modalEl.addEventListener("hidden.bs.modal", cleanup, { once: true });
-  instance.hide();
+  try {
+    const instance = Modal.getInstance(modalEl);
+    if (instance) {
+      instance.hide();
+    } else {
+      const dismissBtn = modalEl.querySelector<HTMLElement>(
+        '[data-bs-dismiss="modal"]',
+      );
+      if (dismissBtn) {
+        dismissBtn.click();
+      }
+    }
+  } catch {
+    // Fallback to direct DOM cleanup below
+  }
 
-  // Safety fallback in case transition event is delayed or skipped
-  setTimeout(() => {
-    cleanup();
-  }, 350);
+  setTimeout(forceCleanup, 150);
 };

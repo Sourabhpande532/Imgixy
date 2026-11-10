@@ -22,12 +22,12 @@ const Landing = () => {
     if (token) {
       localStorage.setItem("kavioToken", token);
       setToken(token);
-      navigate("/dashboard");
+      navigate("/dashboard", { replace: true });
     } else {
       const existingToken = localStorage.getItem("kavioToken");
       if (existingToken) {
         setToken(existingToken);
-        navigate("/dashboard");
+        navigate("/dashboard", { replace: true });
       }
     }
   }, [navigate]);

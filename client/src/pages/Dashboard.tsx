@@ -7,7 +7,7 @@ import CreateAlbumModal from "../components/CreateAlbumModal";
 import ShareModal from "../components/ShareModal";
 import UpdateAlbumModal from "../components/UpdateAlbumModal";
 import type { AlbumType } from "../types";
-import { toast } from "react-toastify";
+import { toast } from "../utils/toast";
 import Planner from "./Planner";
 
 type FilterTab = "all" | "owned" | "shared";
@@ -26,8 +26,7 @@ const Dashboard = () => {
     try {
       const res = await API.get("/albums");
       setAlbums(res.data);
-    } catch (err) {
-      console.error(err);
+    } catch {
       toast.error("Failed to fetch albums");
     } finally {
       setLoading(false);
@@ -47,9 +46,8 @@ const Dashboard = () => {
       .then((res) => {
         if (isMounted) setAlbums(res.data);
       })
-      .catch((err) => {
-        console.error(err);
-        toast.error("Failed to fetch albums");
+      .catch(() => {
+        if (isMounted) toast.error("Failed to fetch albums");
       })
       .finally(() => {
         if (isMounted) setLoading(false);
@@ -68,8 +66,9 @@ const Dashboard = () => {
     ) {
       try {
         await API.delete(`/albums/${id}`);
+        setAlbums((prev) => prev.filter((a) => a._id !== id));
+        toast.success("Album deleted");
         fetchAlbums();
-        toast.success("Album deleted successfully");
       } catch (err: unknown) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const axiosErr = err as any;

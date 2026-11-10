@@ -2,7 +2,10 @@ import axios from "axios";
 
 // Backend API URL — separate from the frontend Vercel deployment
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "https://imgixy.vercel.app",
+  baseURL: (import.meta.env.VITE_API_URL || "https://imgixy.vercel.app").replace(
+    /\/+$/,
+    "",
+  ),
   withCredentials: true,
 });
 
@@ -15,6 +18,35 @@ export const setToken = (token: string | null) => {
     delete API.defaults.headers.common["Authorization"];
   }
 };
+
+// Synchronously capture token from OAuth redirect (?token=...) or localStorage before first render
+if (typeof window !== "undefined") {
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlToken = urlParams.get("token");
+    if (urlToken) {
+      localStorage.setItem("kavioToken", urlToken);
+      setToken(urlToken);
+      window.history.replaceState({}, "", "/dashboard");
+    } else {
+      const storedToken = localStorage.getItem("kavioToken");
+      if (storedToken) {
+        setToken(storedToken);
+      }
+      if (window.location.pathname.startsWith("//")) {
+        const cleanPath =
+          window.location.pathname.replace(/\/+/g, "/") || "/";
+        window.history.replaceState(
+          {},
+          "",
+          `${cleanPath}${window.location.search}`,
+        );
+      }
+    }
+  } catch {
+    // Ignore storage/history errors
+  }
+}
 
 export interface AuthUser {
   id: string;
@@ -48,6 +80,19 @@ export const getCurrentUser = (): AuthUser | null => {
     return null;
   }
 };
+
+// Ensure Authorization header is always attached when token exists in localStorage
+API.interceptors.request.use((config) => {
+  if (!config.headers.Authorization) {
+    const rawToken = localStorage.getItem("kavioToken");
+    if (rawToken) {
+      config.headers.Authorization = rawToken.startsWith("Bearer ")
+        ? rawToken
+        : `Bearer ${rawToken}`;
+    }
+  }
+  return config;
+});
 
 // Automatically handle expired/invalid tokens (401)
 API.interceptors.response.use(

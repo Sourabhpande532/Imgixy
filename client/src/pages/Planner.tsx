@@ -121,7 +121,7 @@ const Planner = () => {
       });
       await processSSEResponse(res);
 
-      window.history.pushState(
+      window.history.replaceState(
         {},
         "",
         `?city=${encodeURIComponent(form.city)}&country=${encodeURIComponent(form.country)}&days=${form.days}`,

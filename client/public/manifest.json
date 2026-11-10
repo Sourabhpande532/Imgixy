@@ -3,15 +3,10 @@
   "name": "Imgixy — Digital Photo Vault",
   "icons": [
     {
-      "src": "/icons.svg",
-      "type": "image/svg+xml",
-      "sizes": "192x192 512x512",
-      "purpose": "any maskable"
-    },
-    {
       "src": "/favicon.svg",
       "type": "image/svg+xml",
-      "sizes": "192x192 512x512"
+      "sizes": "any",
+      "purpose": "any"
     }
   ],
   "start_url": "/",

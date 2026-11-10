@@ -97,7 +97,7 @@ const sendSSE = (res, event, data) => {
 };
 
 const setupSSEHeaders = (req, res) => {
-  const allowedOrigin = process.env.FRONTEND_URL || req.headers.origin;
+  const allowedOrigin = req.headers.origin || process.env.FRONTEND_URL;
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");

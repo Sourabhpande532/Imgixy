@@ -5,8 +5,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
-    <link rel="icon" type="image/svg+xml" href="/icons.svg" />
-    <link rel="apple-touch-icon" href="/icons.svg" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#0f171c" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -26,25 +25,6 @@
           document.documentElement.setAttribute('data-theme', savedTheme);
         } catch (err) {}
       })();
-
-      // Early error listener for chunk/module loading errors
-      window.addEventListener('error', function (e) {
-        var msg = e && e.message ? e.message : '';
-        var src = e && e.target && (e.target.src || e.target.href) ? (e.target.src || e.target.href) : '';
-        if (msg.indexOf('Failed to load module script') !== -1 || msg.indexOf('Loading chunk') !== -1 || src.indexOf('/assets/') !== -1) {
-          if (!sessionStorage.getItem('imgixy_force_reload')) {
-            sessionStorage.setItem('imgixy_force_reload', '1');
-            if ('serviceWorker' in navigator) {
-              navigator.serviceWorker.getRegistrations().then(function (regs) {
-                regs.forEach(function (r) { r.unregister(); });
-                window.location.reload();
-              });
-            } else {
-              window.location.reload();
-            }
-          }
-        }
-      }, true);
     </script>
   </head>
   <body>

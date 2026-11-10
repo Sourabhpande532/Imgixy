@@ -1,19 +1,10 @@
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
-import { lazy, Suspense, useEffect, useState } from "react";
+import { useEffect } from "react";
 import { setToken } from "./services/api";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-
-const Landing = lazy(() => import("./pages/Landing"));
-const Login = lazy(() => import("./pages/Login"));
-const Dashboard = lazy(() => import("./pages/Dashboard"));
-const AlbumPage = lazy(() => import("./pages/AlbumPage"));
-
-const PageLoader = () => (
-  <div className="kx-spinner-wrap" style={{ minHeight: "80vh" }}>
-    <div className="kx-spinner" />
-  </div>
-);
+import Landing from "./pages/Landing";
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import AlbumPage from "./pages/AlbumPage";
 
 const NotFound = () => {
   const navigate = useNavigate();
@@ -43,40 +34,22 @@ const NotFound = () => {
 };
 
 function App() {
-  const [theme, setTheme] = useState<"dark" | "light">(() => {
-    return localStorage.getItem("imgixy_theme") === "light" ? "light" : "dark";
-  });
-
   useEffect(() => {
     const token = localStorage.getItem("kavioToken");
     if (token) {
       setToken(token);
     }
-
-    const handleThemeChange = (e: Event) => {
-      const customEvent = e as CustomEvent<"dark" | "light">;
-      if (customEvent.detail === "light" || customEvent.detail === "dark") {
-        setTheme(customEvent.detail);
-      }
-    };
-
-    window.addEventListener("imgixy-theme-change", handleThemeChange);
-    return () =>
-      window.removeEventListener("imgixy-theme-change", handleThemeChange);
   }, []);
 
   return (
     <BrowserRouter>
-      <ToastContainer position="bottom-right" theme={theme} />
-      <Suspense fallback={<PageLoader />}>
-        <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/album/:albumId" element={<AlbumPage />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Suspense>
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/album/:albumId" element={<AlbumPage />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
     </BrowserRouter>
   );
 }
